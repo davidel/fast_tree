@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 #include "fast_tree/string_formatter.h"
@@ -10,7 +11,9 @@ namespace fast_tree {
 template <typename T>
 class span {
  public:
-  typedef T value_type;
+  typedef std::remove_cv_t<T> value_type;
+
+  typedef const value_type* iterator;
 
   static constexpr size_t no_size = static_cast<size_t>(-1);
 
@@ -33,6 +36,14 @@ class span {
   span(const span& ref) = default;
 
   span& operator=(const span& rhs) = default;
+
+  iterator begin() const {
+    return data();
+  }
+
+  iterator end() const {
+    return data() + size();
+  }
 
   const value_type* data() const {
     return data_;

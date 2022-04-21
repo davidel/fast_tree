@@ -1,10 +1,11 @@
-#include "gtest/gtest.h"
-
 #include <string>
 #include <vector>
 
+#include "gtest/gtest.h"
+
 #include "fast_tree/span.h"
 #include "fast_tree/string_formatter.h"
+#include "fast_tree/types.h"
 #include "fast_tree/util.h"
 
 namespace fast_tree_test {
@@ -39,6 +40,23 @@ TEST(UtilTest, Argsort) {
   for (size_t i = 1; i < indices.size(); ++i) {
     EXPECT_LE(sp_arr[indices[i - 1]], sp_arr[indices[i]]);
   }
+}
+
+TEST(UtilTest, ReduceIndices) {
+  size_t indices[] = {3, 1, 5, 2, 0, 4};
+  fast_tree::bitmap bmap(10, false);
+
+  bmap[1] = true;
+  bmap[3] = true;
+  bmap[0] = true;
+  bmap[8] = true;
+
+  std::vector<size_t> rindices = fast_tree::reduce_indices(indices, bmap);
+
+  EXPECT_EQ(rindices.size(), 3);
+  EXPECT_EQ(rindices[0], 3);
+  EXPECT_EQ(rindices[1], 1);
+  EXPECT_EQ(rindices[2], 0);
 }
 
 }
