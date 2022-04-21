@@ -11,6 +11,8 @@ class span {
  public:
   typedef T value_type;
 
+  static constexpr size_t no_size = static_cast<size_t>(-1);
+
   span(const value_type* data, size_t size) :
       data_(data),
       size_(size)
@@ -46,6 +48,22 @@ class span {
                               << "Index " << i << " out of range (max " << size_ << ")");
     }
     return data_[i];
+  }
+
+  span subspan(size_t pos, size_t size = no_size) const {
+    if (pos > size_) {
+      throw std::out_of_range(string_formatter()
+                              << "Position " << pos << " out of range (max " << size_ << ")");
+    }
+    if (size == no_size) {
+      size = size_ - pos;
+    }
+    if (pos + size > size_) {
+      throw std::out_of_range(string_formatter()
+                              << "Position " << (pos + size) << " out of range (max " << size_ << ")");
+    }
+
+    return span(data_ + pos, size);
   }
 
  private:
