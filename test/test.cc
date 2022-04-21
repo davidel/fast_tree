@@ -5,6 +5,7 @@
 
 #include "fast_tree/span.h"
 #include "fast_tree/string_formatter.h"
+#include "fast_tree/util.h"
 
 namespace fast_tree_test {
 
@@ -28,6 +29,16 @@ TEST(SpanTest, API) {
   EXPECT_EQ(ssp_arr.size(), 4);
   EXPECT_EQ(ssp_arr[2], 5);
   EXPECT_EQ(ssp_arr.at(3), 6);
+}
+
+TEST(UtilTest, Argsort) {
+  float array[] = {1.2, -0.8, 12.44, 8.9, 5.1, 16.25, 2.4};
+  fast_tree::span<float> sp_arr(array);
+
+  std::vector<size_t> indices = fast_tree::argsort(sp_arr);
+  for (size_t i = 1; i < indices.size(); ++i) {
+    EXPECT_LE(sp_arr[indices[i - 1]], sp_arr[indices[i]]);
+  }
 }
 
 }
