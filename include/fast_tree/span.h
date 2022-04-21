@@ -53,6 +53,10 @@ class span {
     return size_;
   }
 
+  bool empty() const {
+    return size() == 0;
+  }
+
   const value_type& operator[](size_t i) const {
     return data_[i];
   }
