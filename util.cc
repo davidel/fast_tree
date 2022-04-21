@@ -1,4 +1,3 @@
-
 #include "fast_tree/util.h"
 
 namespace fast_tree {
