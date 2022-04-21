@@ -5,6 +5,7 @@
 
 #include "fast_tree/span.h"
 #include "fast_tree/string_formatter.h"
+#include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
 #include "fast_tree/util.h"
 
@@ -57,6 +58,22 @@ TEST(UtilTest, ReduceIndices) {
   EXPECT_EQ(rindices[0], 3);
   EXPECT_EQ(rindices[1], 1);
   EXPECT_EQ(rindices[2], 0);
+}
+
+TEST(TreeNode, API) {
+  std::vector<float> values{1.2, 9.7, 0.3, 5.8};
+  fast_tree::tree_node<float> leaf_node(values);
+
+  EXPECT_TRUE(leaf_node.is_leaf());
+
+  fast_tree::tree_node<float> split_node(2, 3.14f);
+
+  split_node.set_left(std::make_unique<fast_tree::tree_node<float>>(values));
+  split_node.set_right(std::make_unique<fast_tree::tree_node<float>>(values));
+
+  EXPECT_FALSE(split_node.is_leaf());
+  EXPECT_EQ(split_node.index(), 2);
+  EXPECT_EQ(split_node.splitter(), 3.14f);
 }
 
 }
