@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <vector>
 
 #include "fast_tree/string_formatter.h"
 
@@ -15,15 +16,18 @@ class span {
 
   span(const value_type* data, size_t size) :
       data_(data),
-      size_(size)
-  {
+      size_(size) {
   }
 
   template <size_t S>
   span(const value_type (&data)[S]) :
       data_(data),
-      size_(S)
-  {
+      size_(S) {
+  }
+
+  span(const std::vector<value_type>& ref) :
+      data_(ref.data()),
+      size_(ref.size()) {
   }
 
   span(const span& ref) = default;
