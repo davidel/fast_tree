@@ -19,7 +19,7 @@ class column_data {
       data_(data) {
   }
 
-  explicit column_data(std::vector<T> storage) :
+  column_data(std::vector<T>&& storage) :
       storage_(std::move(storage)),
       data_(storage_) {
   }

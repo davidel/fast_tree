@@ -4,6 +4,7 @@
 
 #include "gtest/gtest.h"
 
+#include "fast_tree/build_data.h"
 #include "fast_tree/data.h"
 #include "fast_tree/span.h"
 #include "fast_tree/string_formatter.h"
@@ -128,6 +129,24 @@ TEST(DataTest, API) {
   std::unique_ptr<fast_tree::data<float>> sdata = rdata.resample(3, 2, &gen);
   EXPECT_LE(sdata->num_rows(), 3);
   EXPECT_LE(sdata->num_columns(), 2);
+}
+
+TEST(BuildDataTest, API) {
+  fast_tree::real_data<float> rdata;
+  std::mt19937_64 gen;
+
+  for (size_t i = 0; i < 10; ++i) {
+    rdata.add_column(fast_tree::randn<float>(20, &gen));
+  }
+
+  fast_tree::build_data<float> bdata(rdata);
+
+  EXPECT_EQ(bdata.column(2).size(), 20);
+  EXPECT_EQ(bdata.column_indices(1).size(), 20);
+
+  fast_tree::build_data<float> sbdata(bdata, fast_tree::arange<size_t>(1, 20, 2));
+
+  EXPECT_EQ(sbdata.column(5).size(), 10);
 }
 
 }
