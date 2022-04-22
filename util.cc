@@ -2,7 +2,7 @@
 
 namespace fast_tree {
 
-std::vector<size_t> reduce_indices(span<size_t> indices, const bitmap& bmap) {
+std::vector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap) {
   std::vector<size_t> rindices;
 
   rindices.reserve(indices.size() / 2);

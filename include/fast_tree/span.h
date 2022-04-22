@@ -52,7 +52,11 @@ class span {
       size_(data.size()) {
   }
 
-  span(const span& ref) = default;
+  template <typename U>
+  span(const span<U>& ref) :
+      data_(ref.data()),
+      size_(ref.size()) {
+  }
 
   span& operator=(const span& rhs) = default;
 

@@ -37,7 +37,7 @@ class tree_node {
     return splitter_;
   }
 
-  span<value_type> values() const {
+  span<const value_type> values() const {
     return values_;
   }
 

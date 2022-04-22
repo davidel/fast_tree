@@ -82,7 +82,7 @@ TEST(UtilTest, ReduceIndices) {
 
 TEST(UtilTest, Resample) {
   std::mt19937_64 gen;
-  std::vector<size_t> indices = fast_tree::resample(100, 90, gen);
+  std::vector<size_t> indices = fast_tree::resample(100, 90, &gen);
 
   EXPECT_LE(indices.size(), 90);
 }
@@ -92,6 +92,7 @@ TEST(TreeNodeTest, API) {
   fast_tree::tree_node<float> leaf_node(values);
 
   EXPECT_TRUE(leaf_node.is_leaf());
+  EXPECT_EQ(leaf_node.values().size(), values.size());
 
   fast_tree::tree_node<float> split_node(2, 3.14f);
 
@@ -124,7 +125,7 @@ TEST(DataTest, API) {
   EXPECT_EQ(scol[1], 5.8f);
 
   std::mt19937_64 gen;
-  std::unique_ptr<fast_tree::data<float>> sdata = rdata.resample(3, 2, gen);
+  std::unique_ptr<fast_tree::data<float>> sdata = rdata.resample(3, 2, &gen);
   EXPECT_LE(sdata->num_rows(), 3);
   EXPECT_LE(sdata->num_columns(), 2);
 }

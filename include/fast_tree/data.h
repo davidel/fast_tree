@@ -65,7 +65,7 @@ class data {
   virtual std::vector<T> column_sample(size_t i, span<const size_t> indices) const = 0;
 
   template <typename G>
-  std::unique_ptr<data> resample(size_t nrows, size_t ncols, G& gen) const;
+  std::unique_ptr<data> resample(size_t nrows, size_t ncols, G* rgen) const;
 };
 
 template <typename T>
@@ -165,9 +165,9 @@ class real_data : public data<T> {
 
 template <typename T>
 template <typename G>
-std::unique_ptr<data<T>> data<T>::resample(size_t nrows, size_t ncols, G& gen) const {
-  std::vector<size_t> row_indices = fast_tree::resample(num_rows(), nrows, gen);
-  std::vector<size_t> col_indices = fast_tree::resample(num_columns(), ncols, gen);
+std::unique_ptr<data<T>> data<T>::resample(size_t nrows, size_t ncols, G* rgen) const {
+  std::vector<size_t> row_indices = fast_tree::resample(num_rows(), nrows, rgen);
+  std::vector<size_t> col_indices = fast_tree::resample(num_columns(), ncols, rgen);
 
   return std::make_unique<sampled_data<T>>(*this, std::move(row_indices), std::move(col_indices));
 }
