@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "fast_tree/build_data.h"
 #include "fast_tree/span.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
