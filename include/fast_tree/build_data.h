@@ -41,6 +41,19 @@ class build_data {
     return sorted_col_indices_[i];
   }
 
+  std::vector<size_t> invmap_indices(size_t colno,
+                                     span<const size_t> indices) const {
+    std::vector<size_t> inv_indices;
+    span<const size_t> col_indices(sorted_col_indices_[colno]);
+
+    inv_indices.reserve(indices.size());
+    for (size_t ix : indices) {
+      inv_indices.push_back(col_indices[ix]);
+    }
+
+    return inv_indices;
+  }
+
  private:
   static std::vector<std::vector<size_t>> create_sorted_indices(
       const fast_tree::data<T>& xdata) {

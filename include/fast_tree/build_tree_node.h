@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -15,8 +16,16 @@ class build_tree_node {
  public:
   using value_type = T;
 
- private:
+  using set_tree_fn = std::function<tree_node<T>* (std::unique_ptr<tree_node<T> >)>;
 
+  build_tree_node(std::unique_ptr<build_data<T>> bdata, set_tree_fn set_fn) :
+      bdata_(std::move(bdata)),
+      set_fn_(std::move(set_fn)) {
+  }
+
+ private:
+  std::unique_ptr<build_data<T>> bdata_;
+  set_tree_fn set_fn_;
 };
 
 }

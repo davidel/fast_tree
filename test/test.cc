@@ -140,13 +140,21 @@ TEST(BuildDataTest, API) {
   }
 
   fast_tree::build_data<float> bdata(rdata);
-
   EXPECT_EQ(bdata.column(2).size(), 20);
   EXPECT_EQ(bdata.column_indices(1).size(), 20);
 
   fast_tree::build_data<float> sbdata(bdata, fast_tree::arange<size_t>(1, 20, 2));
-
   EXPECT_EQ(sbdata.column(5).size(), 10);
+
+  std::vector<size_t> inv_indices = sbdata.invmap_indices(
+      6, fast_tree::arange<size_t>(0, 5));
+  EXPECT_EQ(inv_indices.size(), 5);
+
+  fast_tree::span<const size_t> cidx = sbdata.column_indices(6);
+  EXPECT_LE(inv_indices.size(), cidx.size());
+  for (size_t i = 0; i < inv_indices.size(); ++i) {
+    EXPECT_EQ(inv_indices[i], cidx[i]);
+  }
 }
 
 }
