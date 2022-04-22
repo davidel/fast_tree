@@ -11,7 +11,7 @@ namespace fast_tree {
 template <typename T>
 class tree_node {
  public:
-  typedef T value_type;
+  using value_type = T;
 
   static constexpr size_t no_index = static_cast<size_t>(-1);
 

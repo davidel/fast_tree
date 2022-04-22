@@ -1,3 +1,4 @@
+#include <random>
 #include <string>
 #include <vector>
 
@@ -79,6 +80,13 @@ TEST(UtilTest, ReduceIndices) {
   EXPECT_EQ(rindices[2], 0);
 }
 
+TEST(UtilTest, Resample) {
+  std::mt19937_64 gen;
+  std::vector<size_t> indices = fast_tree::resample(100, 90, gen);
+
+  EXPECT_LE(indices.size(), 90);
+}
+
 TEST(TreeNodeTest, API) {
   std::vector<float> values{1.2, 9.7, 0.3, 5.8};
   fast_tree::tree_node<float> leaf_node(values);
@@ -96,7 +104,7 @@ TEST(TreeNodeTest, API) {
 }
 
 TEST(DataTest, API) {
-  std::vector<float> values{1.2, 9.7, 0.3, 5.8};
+  std::vector<float> values{1.2f, 9.7f, 0.3f, 5.8f, -1.8f};
   fast_tree::span<const float> sp_values(values);
 
   fast_tree::real_data<float> rdata;
@@ -105,10 +113,20 @@ TEST(DataTest, API) {
   rdata.add_column(sp_values);
 
   EXPECT_EQ(rdata.num_columns(), 2);
-  EXPECT_EQ(rdata.num_rows(), 4);
+  EXPECT_EQ(rdata.num_rows(), 5);
 
   fast_tree::real_data<float>::cdata col = rdata.column(1);
   EXPECT_EQ(col.data().data(), sp_values.data());
+
+  std::size_t indices[] = {1, 3, 4};
+  std::vector<float> scol = rdata.column_sample(0, indices);
+  EXPECT_EQ(scol.size(), 3);
+  EXPECT_EQ(scol[1], 5.8f);
+
+  std::mt19937_64 gen;
+  std::unique_ptr<fast_tree::data<float>> sdata = rdata.resample(3, 2, gen);
+  EXPECT_LE(sdata->num_rows(), 3);
+  EXPECT_LE(sdata->num_columns(), 2);
 }
 
 }

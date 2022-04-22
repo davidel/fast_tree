@@ -11,9 +11,9 @@ namespace fast_tree {
 template <typename T>
 class span {
  public:
-  typedef T value_type;
+  using value_type = T;
 
-  typedef value_type* iterator;
+  using iterator = value_type*;
 
   static constexpr size_t no_size = static_cast<size_t>(-1);
 
