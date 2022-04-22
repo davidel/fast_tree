@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <type_traits>
 #include <vector>
 
 #include "fast_tree/span.h"
@@ -29,6 +30,11 @@ std::vector<size_t> argsort(const T& array, bool descending = false) {
   }
 
   return indices;
+}
+
+template<typename T>
+std::vector<std::remove_cv_t<T>> to_vector(span<T> data) {
+  return std::vector<std::remove_cv_t<T>>(data.data(), data.data() + data.size());
 }
 
 }

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <array>
 #include <stdexcept>
-#include <type_traits>
 #include <vector>
 
 #include "fast_tree/string_formatter.h"
@@ -11,26 +11,45 @@ namespace fast_tree {
 template <typename T>
 class span {
  public:
-  typedef std::remove_cv_t<T> value_type;
+  typedef T value_type;
 
-  typedef const value_type* iterator;
+  typedef value_type* iterator;
 
   static constexpr size_t no_size = static_cast<size_t>(-1);
 
-  span(const value_type* data, size_t size) :
+  span(value_type* data, size_t size) :
       data_(data),
       size_(size) {
   }
 
-  template <size_t S>
-  span(const value_type (&data)[S]) :
+  template <size_t N>
+  span(value_type (&data)[N]) :
       data_(data),
-      size_(S) {
+      size_(N) {
   }
 
-  span(const std::vector<value_type>& ref) :
-      data_(ref.data()),
-      size_(ref.size()) {
+  template <typename U, size_t N>
+  span(std::array<U, N>& data) :
+      data_(data.data()),
+      size_(N) {
+  }
+
+  template <typename U, size_t N>
+  span(const std::array<U, N>& data) :
+      data_(data.data()),
+      size_(N) {
+  }
+
+  template <typename U>
+  span(std::vector<U>& data) :
+      data_(data.data()),
+      size_(data.size()) {
+  }
+
+  template <typename U>
+  span(const std::vector<U>& data) :
+      data_(data.data()),
+      size_(data.size()) {
   }
 
   span(const span& ref) = default;
@@ -45,7 +64,7 @@ class span {
     return data() + size();
   }
 
-  const value_type* data() const {
+  value_type* data() const {
     return data_;
   }
 
@@ -57,11 +76,11 @@ class span {
     return size() == 0;
   }
 
-  const value_type& operator[](size_t i) const {
+  value_type& operator[](size_t i) const {
     return data_[i];
   }
 
-  const value_type& at(size_t i) const {
+  value_type& at(size_t i) const {
     if (i >= size_) {
       throw std::out_of_range(string_formatter()
                               << "Index " << i << " out of range (max " << size_ << ")");
@@ -86,7 +105,7 @@ class span {
   }
 
  private:
-  const value_type* data_ = nullptr;
+  value_type* data_ = nullptr;
   size_t size_ = 0;
 };
 
