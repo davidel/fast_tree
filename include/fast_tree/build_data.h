@@ -43,15 +43,9 @@ class build_data {
 
   std::vector<size_t> invmap_indices(size_t colno,
                                      span<const size_t> indices) const {
-    std::vector<size_t> inv_indices;
     span<const size_t> col_indices(sorted_col_indices_[colno]);
 
-    inv_indices.reserve(indices.size());
-    for (size_t ix : indices) {
-      inv_indices.push_back(col_indices[ix]);
-    }
-
-    return inv_indices;
+    return take(col_indices, indices);
   }
 
  private:

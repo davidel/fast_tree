@@ -75,6 +75,18 @@ std::vector<size_t> argsort(const T& array, bool descending = false) {
 }
 
 template<typename T>
+std::vector<T> take(span<const T> vec, span<const size_t> indices) {
+  std::vector<T> values;
+
+  values.reserve(indices.size());
+  for (size_t ix : indices) {
+    values.push_back(vec[ix]);
+  }
+
+  return values;
+}
+
+template<typename T>
 std::vector<std::remove_cv_t<T>> to_vector(span<T> data) {
   return std::vector<std::remove_cv_t<T>>(data.data(), data.data() + data.size());
 }

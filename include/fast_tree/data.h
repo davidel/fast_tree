@@ -24,11 +24,17 @@ class column_data {
       data_(storage_) {
   }
 
+  column_data(const column_data& ref) :
+      data_(ref.data()) {
+  }
+
   explicit column_data(column_data&& ref) = default;
 
-  column_data(const column_data& ref) = delete;
+  column_data& operator=(const column_data& ref) {
+    data_ = ref.data();
 
-  column_data& operator=(const column_data& ref) = delete;
+    return *this;
+  }
 
   size_t size() const {
     return data_.size();
@@ -91,14 +97,8 @@ class sampled_data : public data<T> {
   virtual cdata column(size_t i) const override {
     size_t ri = col_indices_.at(i);
     cdata rcol = ref_data_.column(ri);
-    std::vector<T> col;
 
-    col.reserve(row_indices_.size());
-    for (size_t ix : row_indices_) {
-      col.push_back(rcol[ix]);
-    }
-
-    return cdata(std::move(col));
+    return cdata(take(rcol.data(), row_indices_));
   }
 
   virtual std::vector<T> column_sample(
@@ -139,15 +139,7 @@ class real_data : public data<T> {
   }
 
   virtual std::vector<T> column_sample(size_t i, span<const size_t> indices) const override {
-    span<const T> rcol = columns_.at(i).data();
-    std::vector<T> col;
-
-    col.reserve(indices.size());
-    for (size_t ix : indices) {
-      col.push_back(rcol[ix]);
-    }
-
-    return col;
+    return take(columns_.at(i).data(), indices);
   }
 
   void add_column(cdata col) {
