@@ -101,7 +101,8 @@ class sampled_data : public data<T> {
     return cdata(std::move(col));
   }
 
-  virtual std::vector<T> column_sample(size_t i, span<const size_t> indices) const override {
+  virtual std::vector<T> column_sample(
+      size_t i, span<const size_t> indices) const override {
     size_t ri = col_indices_.at(i);
     cdata rcol = ref_data_.column(ri);
     std::vector<T> col;
@@ -130,7 +131,7 @@ class real_data : public data<T> {
   }
 
   virtual size_t num_rows() const override {
-    return columns_.empty() ? 0: columns_[0].data().size();
+    return columns_.empty() ? 0: columns_[0].size();
   }
 
   virtual cdata column(size_t i) const override {
@@ -150,11 +151,10 @@ class real_data : public data<T> {
   }
 
   void add_column(cdata col) {
-    if (!columns_.empty() && columns_[0].data().size() != col.data().size()) {
+    if (!columns_.empty() && columns_[0].size() != col.size()) {
       throw std::invalid_argument(string_formatter()
                                   << "All columns must have the same size: "
-                                  << columns_[0].data().size() << " != "
-                                  << col.data().size());
+                                  << columns_[0].size() << " != " << col.size());
     }
     columns_.push_back(std::move(col));
   }
@@ -169,7 +169,8 @@ std::unique_ptr<data<T>> data<T>::resample(size_t nrows, size_t ncols, G* rgen) 
   std::vector<size_t> row_indices = fast_tree::resample(num_rows(), nrows, rgen);
   std::vector<size_t> col_indices = fast_tree::resample(num_columns(), ncols, rgen);
 
-  return std::make_unique<sampled_data<T>>(*this, std::move(row_indices), std::move(col_indices));
+  return std::make_unique<sampled_data<T>>(*this, std::move(row_indices),
+                                           std::move(col_indices));
 }
 
 }
