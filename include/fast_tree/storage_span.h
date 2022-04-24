@@ -20,13 +20,6 @@ class storage_span {
       data_(*storage_) {
   }
 
-  storage_span(const storage_span& ref) :
-      storage_(ref.storage_),
-      data_(ref.data()) {
-  }
-
-  explicit storage_span(storage_span&& ref) = default;
-
   storage_span& operator=(const storage_span& ref) {
     if (this != &ref) {
       storage_ = ref.storage_();
