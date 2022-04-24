@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "fast_tree/span.h"
+#include "fast_tree/storage_span.h"
 #include "fast_tree/string_formatter.h"
 #include "fast_tree/types.h"
 #include "fast_tree/util.h"
@@ -13,52 +14,11 @@
 namespace fast_tree {
 
 template <typename T>
-class column_data {
- public:
-  column_data(span<const T> data) :
-      data_(data) {
-  }
-
-  column_data(std::vector<T>&& storage) :
-      storage_(std::move(storage)),
-      data_(storage_) {
-  }
-
-  column_data(const column_data& ref) :
-      data_(ref.data()) {
-  }
-
-  explicit column_data(column_data&& ref) = default;
-
-  column_data& operator=(const column_data& ref) {
-    data_ = ref.data();
-
-    return *this;
-  }
-
-  size_t size() const {
-    return data_.size();
-  }
-
-  const T& operator[](size_t i) const {
-    return data_[i];
-  }
-
-  span<const T> data() const {
-    return data_;
-  }
-
- private:
-  std::vector<T> storage_;
-  span<const T> data_;
-};
-
-template <typename T>
 class data {
  public:
   using value_type = T;
 
-  using cdata = column_data<T>;
+  using cdata = storage_span<T>;
 
   virtual ~data() = default;
 
