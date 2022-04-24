@@ -87,7 +87,9 @@ class sampled_data : public data<T> {
   }
 
   virtual cdata target() const override {
-    return ref_data_.target();
+    cdata tgt = ref_data_.target();
+
+    return cdata(take(tgt.data(), row_indices_));
   }
 
   virtual size_t num_columns() const override {
