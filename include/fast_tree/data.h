@@ -62,6 +62,8 @@ class data {
 
   virtual ~data() = default;
 
+  virtual cdata target() const = 0;
+
   virtual size_t num_columns() const = 0;
 
   virtual size_t num_rows() const = 0;
@@ -82,6 +84,10 @@ class sampled_data : public data<T> {
   sampled_data(const data<T>& ref_data, std::vector<size_t> row_indices) :
       ref_data_(ref_data),
       row_indices_(std::move(row_indices)) {
+  }
+
+  virtual cdata target() const override {
+    return ref_data_.target();
   }
 
   virtual size_t num_columns() const override {
@@ -121,6 +127,14 @@ class real_data : public data<T> {
  public:
   using cdata = typename data<T>::cdata;
 
+  explicit real_data(cdata target) :
+      target_(std::move(target)) {
+  }
+
+  virtual cdata target() const override {
+    return target_;
+  }
+
   virtual size_t num_columns() const override {
     return columns_.size();
   }
@@ -138,16 +152,17 @@ class real_data : public data<T> {
   }
 
   void add_column(cdata col) {
-    if (!columns_.empty() && columns_[0].size() != col.size()) {
+    if (target_.size() != col.size()) {
       throw std::invalid_argument(string_formatter()
                                   << "All columns must have the same size: "
-                                  << columns_[0].size() << " != " << col.size());
+                                  << target_.size() << " != " << col.size());
     }
     columns_.push_back(std::move(col));
   }
 
  private:
   std::vector<cdata> columns_;
+  cdata target_;
 };
 
 template <typename T>

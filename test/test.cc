@@ -109,7 +109,7 @@ TEST(DataTest, API) {
   std::vector<float> values{1.2f, 9.7f, 0.3f, 5.8f, -1.8f};
   fast_tree::span<const float> sp_values(values);
 
-  fast_tree::real_data<float> rdata;
+  fast_tree::real_data<float> rdata(sp_values);
 
   rdata.add_column(sp_values);
   rdata.add_column(sp_values);
@@ -131,18 +131,19 @@ TEST(DataTest, API) {
 }
 
 TEST(BuildDataTest, API) {
-  fast_tree::real_data<float> rdata;
+  static const size_t N = 20;
   std::mt19937_64 gen;
+  fast_tree::real_data<float> rdata(fast_tree::randn<float>(N, &gen));
 
   for (size_t i = 0; i < 10; ++i) {
-    rdata.add_column(fast_tree::randn<float>(20, &gen));
+    rdata.add_column(fast_tree::randn<float>(N, &gen));
   }
 
   fast_tree::build_data<float> bdata(rdata);
-  EXPECT_EQ(bdata.column(2).size(), 20);
-  EXPECT_EQ(bdata.column_indices(1).size(), 20);
+  EXPECT_EQ(bdata.column(2).size(), N);
+  EXPECT_EQ(bdata.column_indices(1).size(), N);
 
-  fast_tree::build_data<float> sbdata(bdata, fast_tree::arange<size_t>(1, 20, 2));
+  fast_tree::build_data<float> sbdata(bdata, fast_tree::arange<size_t>(1, N, 2));
   EXPECT_EQ(sbdata.column(5).size(), 10);
 
   std::vector<size_t> inv_indices = sbdata.invmap_indices(
