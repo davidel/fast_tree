@@ -11,6 +11,8 @@ namespace fast_tree {
 template <typename T>
 class storage_span {
  public:
+  storage_span() = default;
+
   storage_span(span<const T> data) :
       data_(data) {
   }
@@ -18,15 +20,6 @@ class storage_span {
   storage_span(std::vector<T>&& stg) :
       storage_(std::make_shared<std::vector<T>>(std::move(stg))),
       data_(*storage_) {
-  }
-
-  storage_span& operator=(const storage_span& ref) {
-    if (this != &ref) {
-      storage_ = ref.storage_();
-      data_ = ref.data();
-    }
-
-    return *this;
   }
 
   size_t size() const {

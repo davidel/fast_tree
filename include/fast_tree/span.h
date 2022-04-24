@@ -17,6 +17,8 @@ class span {
 
   static constexpr size_t no_size = static_cast<size_t>(-1);
 
+  span() = default;
+
   span(value_type* data, size_t size) :
       data_(data),
       size_(size) {

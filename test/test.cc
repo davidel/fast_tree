@@ -54,6 +54,14 @@ TEST(StorageSpanTest, API) {
       vsp_arr(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8});
   EXPECT_EQ(vsp_arr.size(), 8);
   EXPECT_NE(vsp_arr.storage(), nullptr);
+
+  fast_tree::storage_span<int> empty;
+  empty = vsp_arr;
+  EXPECT_EQ(empty.size(), 8);
+
+  empty = ssp_arr;
+  EXPECT_EQ(empty.size(), 8);
+  EXPECT_EQ(empty.data().data(), array);
 }
 
 TEST(UtilTest, Argsort) {
