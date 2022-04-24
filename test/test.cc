@@ -126,9 +126,8 @@ TEST(DataTest, API) {
   EXPECT_EQ(scol[1], 5.8f);
 
   std::mt19937_64 gen;
-  std::unique_ptr<fast_tree::data<float>> sdata = rdata.resample(3, 2, &gen);
+  std::unique_ptr<fast_tree::data<float>> sdata = rdata.resample(3, &gen);
   EXPECT_LE(sdata->num_rows(), 3);
-  EXPECT_LE(sdata->num_columns(), 2);
 }
 
 TEST(BuildDataTest, API) {

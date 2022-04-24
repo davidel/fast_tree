@@ -71,7 +71,7 @@ class data {
   virtual std::vector<T> column_sample(size_t i, span<const size_t> indices) const = 0;
 
   template <typename G>
-  std::unique_ptr<data> resample(size_t nrows, size_t ncols, G* rgen) const;
+  std::unique_ptr<data> resample(size_t nrows, G* rgen) const;
 };
 
 template <typename T>
@@ -79,15 +79,13 @@ class sampled_data : public data<T> {
  public:
   using cdata = typename data<T>::cdata;
 
-  sampled_data(const data<T>& ref_data, std::vector<size_t> row_indices,
-               std::vector<size_t> col_indices) :
+  sampled_data(const data<T>& ref_data, std::vector<size_t> row_indices) :
       ref_data_(ref_data),
-      row_indices_(std::move(row_indices)),
-      col_indices_(std::move(col_indices)) {
+      row_indices_(std::move(row_indices)) {
   }
 
   virtual size_t num_columns() const override {
-    return col_indices_.size();
+    return ref_data_.num_columns();
   }
 
   virtual size_t num_rows() const override {
@@ -95,16 +93,14 @@ class sampled_data : public data<T> {
   }
 
   virtual cdata column(size_t i) const override {
-    size_t ri = col_indices_.at(i);
-    cdata rcol = ref_data_.column(ri);
+    cdata rcol = ref_data_.column(i);
 
     return cdata(take(rcol.data(), row_indices_));
   }
 
   virtual std::vector<T> column_sample(
       size_t i, span<const size_t> indices) const override {
-    size_t ri = col_indices_.at(i);
-    cdata rcol = ref_data_.column(ri);
+    cdata rcol = ref_data_.column(i);
     std::vector<T> col;
 
     col.reserve(indices.size());
@@ -118,7 +114,6 @@ class sampled_data : public data<T> {
  private:
   const data<T>& ref_data_;
   std::vector<size_t> row_indices_;
-  std::vector<size_t> col_indices_;
 };
 
 template <typename T>
@@ -157,12 +152,10 @@ class real_data : public data<T> {
 
 template <typename T>
 template <typename G>
-std::unique_ptr<data<T>> data<T>::resample(size_t nrows, size_t ncols, G* rgen) const {
+std::unique_ptr<data<T>> data<T>::resample(size_t nrows, G* rgen) const {
   std::vector<size_t> row_indices = fast_tree::resample(num_rows(), nrows, rgen);
-  std::vector<size_t> col_indices = fast_tree::resample(num_columns(), ncols, rgen);
 
-  return std::make_unique<sampled_data<T>>(*this, std::move(row_indices),
-                                           std::move(col_indices));
+  return std::make_unique<sampled_data<T>>(*this, std::move(row_indices));
 }
 
 }
