@@ -7,6 +7,7 @@
 #include "fast_tree/build_data.h"
 #include "fast_tree/data.h"
 #include "fast_tree/span.h"
+#include "fast_tree/storage_span.h"
 #include "fast_tree/string_formatter.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
@@ -40,6 +41,19 @@ TEST(SpanTest, API) {
   EXPECT_EQ(wsp_arr.size(), 8);
   wsp_arr[2] = -1;
   EXPECT_EQ(array[2], -1);
+}
+
+TEST(StorageSpanTest, API) {
+  int array[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  fast_tree::storage_span<int> ssp_arr(array);
+
+  EXPECT_EQ(ssp_arr.size(), 8);
+  EXPECT_EQ(ssp_arr.data().data(), array);
+
+  fast_tree::storage_span<int>
+      vsp_arr(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8});
+  EXPECT_EQ(vsp_arr.size(), 8);
+  EXPECT_NE(vsp_arr.storage(), nullptr);
 }
 
 TEST(UtilTest, Argsort) {

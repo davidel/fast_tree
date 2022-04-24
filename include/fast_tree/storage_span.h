@@ -15,8 +15,8 @@ class storage_span {
       data_(data) {
   }
 
-  storage_span(std::vector<T>&& storage) :
-      storage_(std::make_shared<std::vector<T>>(std::move(storage))),
+  storage_span(std::vector<T>&& stg) :
+      storage_(std::make_shared<std::vector<T>>(std::move(stg))),
       data_(*storage_) {
   }
 
@@ -46,6 +46,10 @@ class storage_span {
 
   span<const T> data() const {
     return data_;
+  }
+
+  const std::shared_ptr<std::vector<T>>& storage() const {
+    return storage_;
   }
 
  private:
