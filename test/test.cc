@@ -18,7 +18,7 @@ namespace fast_tree_test {
 
 template <typename T>
 std::unique_ptr<fast_tree::real_data<T>> create_real_data(size_t nrows, size_t ncols) {
-  std::mt19937_64 gen;
+  fast_tree::rnd_generator gen;
   std::unique_ptr<fast_tree::real_data<T>>
       rdata = std::make_unique<fast_tree::real_data<T>>(fast_tree::randn<T>(nrows, &gen));
 
@@ -118,7 +118,7 @@ TEST(UtilTest, ReduceIndices) {
 }
 
 TEST(UtilTest, Resample) {
-  std::mt19937_64 gen;
+  fast_tree::rnd_generator gen;
   std::vector<size_t> indices = fast_tree::resample(100, 90, &gen);
 
   EXPECT_LE(indices.size(), 90);
@@ -161,7 +161,7 @@ TEST(DataTest, API) {
   EXPECT_EQ(scol.size(), 3);
   EXPECT_EQ(scol[1], 5.8f);
 
-  std::mt19937_64 gen;
+  fast_tree::rnd_generator gen;
   std::unique_ptr<fast_tree::data<float>> sdata = rdata.resample(3, &gen);
   EXPECT_LE(sdata->num_rows(), 3);
   EXPECT_LE(sdata->target().size(), 3);
@@ -210,7 +210,10 @@ TEST(BuildTreeNodeTest, API) {
     return fast_tree::split_result<float>{data.size() / 2, 0.314, 1.0};
   };
 
-  fast_tree::build_tree_node<float> btn(std::move(bdata), std::move(setter), splitter);
+  fast_tree::build_config bcfg;
+  fast_tree::rnd_generator gen;
+  fast_tree::build_tree_node<float>
+      btn(bcfg, std::move(bdata), std::move(setter), splitter, &gen);
 
   std::vector<std::unique_ptr<fast_tree::build_tree_node<float>>>
       split = btn.split();

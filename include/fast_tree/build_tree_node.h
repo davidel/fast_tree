@@ -5,10 +5,12 @@
 #include <optional>
 #include <vector>
 
+#include "fast_tree/build_config.h"
 #include "fast_tree/build_data.h"
 #include "fast_tree/span.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
+#include "fast_tree/util.h"
 
 namespace fast_tree {
 
@@ -21,11 +23,14 @@ class build_tree_node {
 
   using split_fn = std::function<std::optional<split_result<value_type>> (span<const T>)>;
 
-  build_tree_node(std::unique_ptr<fast_tree::build_data<T>> bdata,
-                  set_tree_fn setter_fn, const split_fn& splitter_fn) :
+  build_tree_node(const build_config& bcfg, std::unique_ptr<fast_tree::build_data<T>> bdata,
+                  set_tree_fn setter_fn, const split_fn& splitter_fn,
+                  rnd_generator* rndgen) :
+      bcfg_(bcfg),
       bdata_(std::move(bdata)),
       set_fn_(std::move(setter_fn)),
-      split_fn_(std::move(splitter_fn)) {
+      split_fn_(std::move(splitter_fn)),
+      rndgen_(rndgen) {
   }
 
   const fast_tree::build_data<value_type>& build_data() const {
@@ -33,17 +38,22 @@ class build_tree_node {
   }
 
   std::vector<std::unique_ptr<build_tree_node>> split() const {
-    std::vector<std::unique_ptr<build_tree_node>> leaves;
     std::optional<split_result<value_type>> best_split;
+    std::optional<size_t> best_column;
 
-    for (size_t c = 0; c < bdata_->data().num_columns(); ++c) {
+    std::vector<size_t>
+        col_indices = resample(bdata_->data().num_columns(), bcfg_.num_columns, rndgen_);
+    for (size_t c: col_indices) {
       std::vector<value_type> col = bdata_->column(c);
       std::optional<split_result<value_type>> sres = split_fn_(col);
 
       if (sres && (!best_split || sres->score > best_split->score)) {
         best_split = sres;
+        best_column = c;
       }
     }
+
+    std::vector<std::unique_ptr<build_tree_node>> leaves;
 
     if (!best_split) {
       std::unique_ptr<tree_node<value_type>>
@@ -52,16 +62,18 @@ class build_tree_node {
       set_fn_(std::move(node));
     } else {
       span<const size_t> indices = bdata_->indices();
-      std::vector<size_t> left_indices = to_vector(indices.subspan(0, best_split->index));
-      std::vector<size_t> right_indices = to_vector(indices.subspan(best_split->index));
+      std::vector<size_t> left_indices =
+          bdata_->invmap_indices(*best_column, indices.subspan(0, best_split->index));
+      std::vector<size_t> right_indices =
+          bdata_->invmap_indices(*best_column, indices.subspan(best_split->index));
+
       std::unique_ptr<fast_tree::build_data<value_type>> left_data =
           std::make_unique<fast_tree::build_data<value_type>>(*bdata_, std::move(left_indices));
       std::unique_ptr<fast_tree::build_data<value_type>> right_data =
           std::make_unique<fast_tree::build_data<value_type>>(*bdata_, std::move(right_indices));
 
       std::unique_ptr<tree_node<value_type>>
-          node = std::make_unique<tree_node<value_type>>(best_split->index,
-                                                         best_split->value);
+          node = std::make_unique<tree_node<value_type>>(*best_column, best_split->value);
       tree_node<value_type>* node_ptr = node.get();
 
       auto left_setter = [node_ptr](std::unique_ptr<tree_node<value_type>> lnode) {
@@ -74,20 +86,24 @@ class build_tree_node {
       set_fn_(std::move(node));
 
       leaves.push_back(
-          std::make_unique<build_tree_node<value_type>>(std::move(left_data),
-                                                        std::move(left_setter), split_fn_));
+          std::make_unique<build_tree_node<value_type>>(bcfg_, std::move(left_data),
+                                                        std::move(left_setter), split_fn_,
+                                                        rndgen_));
       leaves.push_back(
-          std::make_unique<build_tree_node<value_type>>(std::move(right_data),
-                                                        std::move(right_setter), split_fn_));
+          std::make_unique<build_tree_node<value_type>>(bcfg_, std::move(right_data),
+                                                        std::move(right_setter), split_fn_,
+                                                        rndgen_));
     }
 
     return leaves;
   }
 
  private:
+  const build_config& bcfg_;
   std::unique_ptr<fast_tree::build_data<T>> bdata_;
   set_tree_fn set_fn_;
   const split_fn& split_fn_;
+  rnd_generator* rndgen_;
 };
 
 }

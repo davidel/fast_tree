@@ -7,16 +7,12 @@
 #include <type_traits>
 #include <vector>
 
+#include "fast_tree/constants.h"
 #include "fast_tree/span.h"
 #include "fast_tree/string_formatter.h"
 #include "fast_tree/types.h"
 
 namespace fast_tree {
-namespace consts {
-
-static constexpr size_t all_indices = static_cast<size_t>(-1);
-
-}
 
 bitmap create_bitmap(size_t size, span<const size_t> indices);
 
@@ -95,7 +91,7 @@ template<typename G>
 std::vector<size_t> resample(size_t size, size_t count, G* rgen) {
   std::vector<size_t> indices;
 
-  if (count == consts::all_indices) {
+  if (count == consts::all || count >= size) {
     indices = iota(size);
   } else {
     std::vector<bool> mask(size, false);

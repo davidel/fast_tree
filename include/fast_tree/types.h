@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <random>
 #include <type_traits>
 #include <vector>
 
@@ -9,6 +10,8 @@
 namespace fast_tree {
 
 using bitmap = std::vector<bool>;
+
+using rnd_generator = std::mt19937_64;
 
 template <typename T>
 struct split_result {
