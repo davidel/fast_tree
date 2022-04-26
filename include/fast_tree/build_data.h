@@ -22,11 +22,15 @@ class build_data {
       sorted_col_indices_(create_sorted_indices(xdata)) {
   }
 
-  build_data(const build_data& parent, std::vector<size_t> indices) :
+  build_data(const build_data& parent, std::vector<size_t> sub_indices) :
       data_(parent.data()),
-      indices_(std::move(indices)),
+      indices_(std::move(sub_indices)),
       sorted_col_indices_(create_sorted_indices(parent.sorted_col_indices_,
                                                 indices_, data_.num_rows())) {
+  }
+
+  span<const size_t> indices() const {
+    return indices_;
   }
 
   const fast_tree::data<T>& data() const {

@@ -167,6 +167,7 @@ TEST(BuildDataTest, API) {
   EXPECT_EQ(bdata.column_indices(1).size(), N);
 
   fast_tree::build_data<float> sbdata(bdata, fast_tree::arange<size_t>(1, N, 2));
+  EXPECT_EQ(sbdata.indices().size(), 10);
   EXPECT_EQ(sbdata.column(5).size(), 10);
 
   std::vector<size_t> inv_indices = sbdata.invmap_indices(
