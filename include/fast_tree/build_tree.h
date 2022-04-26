@@ -18,7 +18,6 @@ template <typename T>
 std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg, const data<T>& rdata,
                                          rnd_generator* rndgen) {
   std::unique_ptr<build_data<T>> bdata = std::make_unique<build_data<T>>(rdata);
-
   std::unique_ptr<tree_node<T>> root;
 
   auto setter = [&](std::unique_ptr<tree_node<T>> node) {

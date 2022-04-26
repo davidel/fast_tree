@@ -223,7 +223,7 @@ TEST(BuildTreeNodeTest, API) {
 
 
 TEST(BuildTreeTest, API) {
-  static const size_t N = 20;
+  static const size_t N = 100;
   static const size_t C = 10;
   std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
   fast_tree::build_config bcfg;
