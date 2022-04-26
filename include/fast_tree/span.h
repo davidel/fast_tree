@@ -82,6 +82,20 @@ class span {
     return size() == 0;
   }
 
+  value_type& front() const {
+    if (empty()) {
+      throw std::out_of_range("Tring to access empty span");
+    }
+    return data()[0];
+  }
+
+  value_type& back() const {
+    if (empty()) {
+      throw std::out_of_range("Tring to access empty span");
+    }
+    return data()[size() - 1];
+  }
+
   value_type& operator[](size_t i) const {
     return data_[i];
   }

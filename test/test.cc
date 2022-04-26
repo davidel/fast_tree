@@ -5,7 +5,9 @@
 #include "gtest/gtest.h"
 
 #include "fast_tree/build_data.h"
+#include "fast_tree/build_tree.h"
 #include "fast_tree/build_tree_node.h"
+#include "fast_tree/column_split.h"
 #include "fast_tree/data.h"
 #include "fast_tree/span.h"
 #include "fast_tree/storage_span.h"
@@ -205,19 +207,31 @@ TEST(BuildTreeNodeTest, API) {
     root = std::move(node);
   };
 
-  auto splitter = [&](fast_tree::span<const float> data) ->
-      std::optional<fast_tree::split_result<float>> {
-    return fast_tree::split_result<float>{data.size() / 2, 0.314, 1.0};
-  };
-
   fast_tree::build_config bcfg;
   fast_tree::rnd_generator gen;
+  fast_tree::build_tree_node<float>::split_fn
+      splitter = fast_tree::create_splitter<float>(bcfg, &gen);
   fast_tree::build_tree_node<float>
       btn(bcfg, std::move(bdata), std::move(setter), splitter, &gen);
 
   std::vector<std::unique_ptr<fast_tree::build_tree_node<float>>>
       split = btn.split();
   EXPECT_EQ(split.size(), 2);
+}
+
+
+
+
+TEST(BuildTreeTest, API) {
+  static const size_t N = 20;
+  static const size_t C = 10;
+  std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  fast_tree::build_config bcfg;
+  fast_tree::rnd_generator gen;
+
+  std::unique_ptr<fast_tree::tree_node<float>> root = fast_tree::build_tree(bcfg, *rdata, &gen);
+  ASSERT_NE(root, nullptr);
+  EXPECT_FALSE(root->is_leaf());
 }
 
 }
