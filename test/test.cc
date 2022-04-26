@@ -219,9 +219,6 @@ TEST(BuildTreeNodeTest, API) {
   EXPECT_EQ(split.size(), 2);
 }
 
-
-
-
 TEST(BuildTreeTest, API) {
   static const size_t N = 100;
   static const size_t C = 10;
