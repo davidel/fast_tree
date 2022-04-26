@@ -1,3 +1,4 @@
+#include <iostream>
 #include <random>
 #include <string>
 #include <vector>
@@ -219,7 +220,7 @@ TEST(BuildTreeNodeTest, API) {
   EXPECT_EQ(split.size(), 2);
 }
 
-TEST(BuildTreeTest, API) {
+TEST(BuildTreeTest, Tree) {
   static const size_t N = 100;
   static const size_t C = 10;
   std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
@@ -229,6 +230,22 @@ TEST(BuildTreeTest, API) {
   std::unique_ptr<fast_tree::tree_node<float>> root = fast_tree::build_tree(bcfg, *rdata, &gen);
   ASSERT_NE(root, nullptr);
   EXPECT_FALSE(root->is_leaf());
+}
+
+TEST(BuildTreeTest, Forest) {
+  static const size_t N = 300;
+  static const size_t C = 10;
+  static const size_t T = 4;
+  std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  fast_tree::rnd_generator gen;
+  fast_tree::build_config bcfg;
+
+  bcfg.num_rows = N * 2 / 3;
+  bcfg.num_columns = C * 2 / 3;
+
+  std::vector<std::unique_ptr<fast_tree::tree_node<float>>>
+      forest = fast_tree::build_forest(bcfg, *rdata, T, &gen);
+  EXPECT_EQ(forest.size(), T);
 }
 
 }

@@ -57,6 +57,7 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
     size_t best_index = 0;
     size_t margin = (bcfg.min_leaf_size + 1) / 2;
 
+    #if 0
     for (size_t i = margin; i + margin < data.size(); ++i) {
       while (i + margin + 1 < data.size() && std::abs(data[i + 1] - data[i]) < bcfg.same_eps) {
         ++i;
@@ -69,6 +70,21 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
         }
       }
     }
+    #endif
+
+    if (data.size() > bcfg.min_leaf_size) {
+      std::vector<size_t> ccs = resample(data.size() - bcfg.min_leaf_size, 8, rndgen,
+                                         /*with_replacement=*/ true);
+      for (size_t x : ccs) {
+        size_t i = x + margin;
+        double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
+        if (score > best_score) {
+          best_score = score;
+          best_index = i;
+        }
+      }
+    }
+
 
     if (best_score <= 0.0) {
       return std::nullopt;

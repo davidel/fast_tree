@@ -88,7 +88,8 @@ std::vector<std::remove_cv_t<T>> to_vector(span<const T> data) {
 }
 
 template<typename G>
-std::vector<size_t> resample(size_t size, size_t count, G* rgen) {
+std::vector<size_t> resample(size_t size, size_t count, G* rgen,
+                             bool with_replacement = false) {
   std::vector<size_t> indices;
 
   if (count == consts::all || count >= size) {
@@ -96,15 +97,32 @@ std::vector<size_t> resample(size_t size, size_t count, G* rgen) {
   } else {
     std::vector<bool> mask(size, false);
 
-    for (size_t i = 0; i < count; ++i) {
-      size_t ix = static_cast<size_t>((*rgen)()) % size;
-      mask[ix] = true;
-    }
-
     indices.reserve(count);
-    for (size_t i = 0; i < size; ++i) {
-      if (mask[i]) {
-        indices.push_back(i);
+    if (with_replacement) {
+      bool invert_count = count > size / 2;
+      size_t xcount = invert_count ? size - count : count;
+
+      while (xcount > 0) {
+        size_t ix = static_cast<size_t>((*rgen)()) % size;
+        if (!mask[ix]) {
+          mask[ix] = true;
+          --xcount;
+        }
+      }
+      for (size_t i = 0; i < size; ++i) {
+        if (mask[i] ^ invert_count) {
+          indices.push_back(i);
+        }
+      }
+    } else {
+      for (size_t i = 0; i < count; ++i) {
+        size_t ix = static_cast<size_t>((*rgen)()) % size;
+        mask[ix] = true;
+      }
+      for (size_t i = 0; i < size; ++i) {
+        if (mask[i]) {
+          indices.push_back(i);
+        }
       }
     }
   }

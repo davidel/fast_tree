@@ -3,11 +3,13 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <vector>
 
 #include "fast_tree/build_config.h"
 #include "fast_tree/build_data.h"
 #include "fast_tree/span.h"
+#include "fast_tree/string_formatter.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
 #include "fast_tree/util.h"
@@ -61,11 +63,17 @@ class build_tree_node {
 
       set_fn_(std::move(node));
     } else {
-      span<const size_t> indices = bdata_->indices();
-      std::vector<size_t> left_indices =
-          bdata_->invmap_indices(*best_column, indices.subspan(0, best_split->index));
-      std::vector<size_t> right_indices =
-          bdata_->invmap_indices(*best_column, indices.subspan(best_split->index));
+      std::vector<span<const size_t>>
+          indices = bdata_->split_indices(*best_column, best_split->index);
+
+      if (indices.size() != 2) {
+        throw std::runtime_error(string_formatter()
+                                 << "Invalid split index " << best_split->index << " / "
+                                 << bdata_->data().num_columns());
+      }
+
+      std::vector<size_t> left_indices = to_vector(indices[0]);
+      std::vector<size_t> right_indices = to_vector(indices[1]);
 
       std::unique_ptr<fast_tree::build_data<value_type>> left_data =
           std::make_unique<fast_tree::build_data<value_type>>(*bdata_, std::move(left_indices));

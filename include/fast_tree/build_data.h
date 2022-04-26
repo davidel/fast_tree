@@ -56,6 +56,20 @@ class build_data {
     return take(col_indices, indices);
   }
 
+  std::vector<span<const size_t>> split_indices(size_t colno, size_t split_index) const {
+    span<const size_t> col_indices(sorted_col_indices_[colno]);
+    std::vector<span<const size_t>> splits;
+
+    if (split_index > 0) {
+      splits.push_back(col_indices.subspan(0, split_index));
+    }
+    if (split_index < col_indices.size()) {
+      splits.push_back(col_indices.subspan(split_index));
+    }
+
+    return splits;
+  }
+
  private:
   static std::vector<std::vector<size_t>> create_sorted_indices(
       const fast_tree::data<T>& xdata) {

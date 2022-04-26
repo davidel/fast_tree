@@ -42,4 +42,31 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg, const data<T>
   return root;
 }
 
+template <typename T>
+std::vector<std::unique_ptr<tree_node<T>>>
+build_forest(const build_config& bcfg, const data<T>& rdata, size_t num_trees,
+             rnd_generator* rndgen) {
+  std::vector<std::unique_ptr<tree_node<T>>> forest;
+
+  if ((bcfg.num_rows == consts::all || bcfg.num_rows >= rdata.num_rows()) &&
+      (bcfg.num_columns == consts::all || bcfg.num_columns >= rdata.num_columns())) {
+    num_trees = 1;
+  }
+
+  forest.reserve(num_trees);
+  for (size_t i = 0; i < num_trees; ++i) {
+    std::unique_ptr<data<T>> sdata;
+    const data<T>* current_data = &rdata;
+
+    if (bcfg.num_rows != consts::all && bcfg.num_rows < rdata.num_rows()) {
+      sdata = rdata.resample(bcfg.num_rows, rndgen);
+      current_data = sdata.get();
+    }
+
+    forest.push_back(build_tree(bcfg, *current_data, rndgen));
+  }
+
+  return forest;
+}
+
 }
