@@ -5,6 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "fast_tree/build_data.h"
+#include "fast_tree/build_tree_node.h"
 #include "fast_tree/data.h"
 #include "fast_tree/span.h"
 #include "fast_tree/storage_span.h"
@@ -14,6 +15,19 @@
 #include "fast_tree/util.h"
 
 namespace fast_tree_test {
+
+template <typename T>
+std::unique_ptr<fast_tree::real_data<T>> create_real_data(size_t nrows, size_t ncols) {
+  std::mt19937_64 gen;
+  std::unique_ptr<fast_tree::real_data<T>>
+      rdata = std::make_unique<fast_tree::real_data<T>>(fast_tree::randn<T>(nrows, &gen));
+
+  for (size_t i = 0; i < ncols; ++i) {
+    rdata->add_column(fast_tree::randn<T>(nrows, &gen));
+  }
+
+  return rdata;
+}
 
 TEST(StringFormatter, API) {
   fast_tree::string_formatter sf;
@@ -155,20 +169,17 @@ TEST(DataTest, API) {
 
 TEST(BuildDataTest, API) {
   static const size_t N = 20;
-  std::mt19937_64 gen;
-  fast_tree::real_data<float> rdata(fast_tree::randn<float>(N, &gen));
+  static const size_t C = 10;
+  std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
 
-  for (size_t i = 0; i < 10; ++i) {
-    rdata.add_column(fast_tree::randn<float>(N, &gen));
-  }
-
-  fast_tree::build_data<float> bdata(rdata);
+  fast_tree::build_data<float> bdata(*rdata);
   EXPECT_EQ(bdata.column(2).size(), N);
   EXPECT_EQ(bdata.column_indices(1).size(), N);
 
   fast_tree::build_data<float> sbdata(bdata, fast_tree::arange<size_t>(1, N, 2));
-  EXPECT_EQ(sbdata.indices().size(), 10);
-  EXPECT_EQ(sbdata.column(5).size(), 10);
+  EXPECT_EQ(sbdata.indices().size(), C);
+  EXPECT_EQ(sbdata.column(5).size(), C);
+  EXPECT_EQ(sbdata.target().size(), C);
 
   std::vector<size_t> inv_indices = sbdata.invmap_indices(
       6, fast_tree::arange<size_t>(0, 5));
@@ -179,6 +190,31 @@ TEST(BuildDataTest, API) {
   for (size_t i = 0; i < inv_indices.size(); ++i) {
     EXPECT_EQ(inv_indices[i], cidx[i]);
   }
+}
+
+TEST(BuildTreeNodeTest, API) {
+  static const size_t N = 20;
+  static const size_t C = 10;
+  std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  std::unique_ptr<fast_tree::build_data<float>>
+      bdata = std::make_unique<fast_tree::build_data<float>>(*rdata);
+
+  std::unique_ptr<fast_tree::tree_node<float>> root;
+
+  auto setter = [&](std::unique_ptr<fast_tree::tree_node<float>> node) {
+    root = std::move(node);
+  };
+
+  auto splitter = [&](fast_tree::span<const float> data) ->
+      std::optional<fast_tree::split_result<float>> {
+    return fast_tree::split_result<float>{data.size() / 2, 0.314, 1.0};
+  };
+
+  fast_tree::build_tree_node<float> btn(std::move(bdata), std::move(setter), splitter);
+
+  std::vector<std::unique_ptr<fast_tree::build_tree_node<float>>>
+      split = btn.split();
+  EXPECT_EQ(split.size(), 2);
 }
 
 }

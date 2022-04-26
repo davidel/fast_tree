@@ -87,7 +87,7 @@ std::vector<T> take(span<const T> vec, span<const size_t> indices) {
 }
 
 template<typename T>
-std::vector<std::remove_cv_t<T>> to_vector(span<T> data) {
+std::vector<std::remove_cv_t<T>> to_vector(span<const T> data) {
   return std::vector<std::remove_cv_t<T>>(data.data(), data.data() + data.size());
 }
 

@@ -46,6 +46,8 @@ class sampled_data : public data<T> {
       row_indices_(std::move(row_indices)) {
   }
 
+  sampled_data(sampled_data&& ref) = default;
+
   virtual cdata target() const override {
     cdata tgt = ref_data_.target();
 

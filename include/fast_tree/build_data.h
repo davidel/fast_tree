@@ -37,6 +37,10 @@ class build_data {
     return data_;
   }
 
+  std::vector<T> target() const {
+    return take(data_.target().data(), indices_);
+  }
+
   std::vector<T> column(size_t i) const {
     return data_.column_sample(i, sorted_col_indices_[i]);
   }
