@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 add_compile_options(
   "-std=c++17"
-  "-O2"
+  "-O3"
   "-g"
 )
 

@@ -95,7 +95,7 @@ std::vector<size_t> resample(size_t size, size_t count, G* rgen,
   if (count == consts::all || count >= size) {
     indices = iota(size);
   } else {
-    std::vector<bool> mask(size, false);
+    bitmap mask(size, false);
 
     indices.reserve(count);
     if (with_replacement) {
