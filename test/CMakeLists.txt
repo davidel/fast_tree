@@ -13,4 +13,5 @@ set_target_properties(fast_tree_test PROPERTIES
 target_link_libraries(fast_tree_test
   PUBLIC fast_tree
   gtest
+  pthread
 )
