@@ -16,7 +16,7 @@ std::vector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bma
   std::vector<size_t> rindices;
 
   rindices.reserve(indices.size());
-  for (auto idx : indices) {
+  for (size_t idx : indices) {
     if (bmap[idx]) {
       rindices.push_back(idx);
     }

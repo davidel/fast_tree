@@ -42,13 +42,15 @@ class data {
     return take(columns_.at(i).data(), indices);
   }
 
-  void add_column(cdata col) {
+  size_t add_column(cdata col) {
     if (target_.size() != col.size()) {
       throw std::invalid_argument(string_formatter()
                                   << "All columns must have the same size: "
                                   << target_.size() << " != " << col.size());
     }
     columns_.push_back(std::move(col));
+
+    return columns_.size() - 1;
   }
 
  private:
