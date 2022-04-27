@@ -16,49 +16,29 @@ namespace fast_tree {
 template <typename T>
 class data {
  public:
-  using value_type = T;
-
   using cdata = storage_span<T>;
 
-  virtual ~data() = default;
-
-  virtual cdata target() const = 0;
-
-  virtual size_t num_columns() const = 0;
-
-  virtual size_t num_rows() const = 0;
-
-  virtual cdata column(size_t i) const = 0;
-
-  virtual std::vector<T> column_sample(size_t i, span<const size_t> indices) const = 0;
-};
-
-template <typename T>
-class real_data : public data<T> {
- public:
-  using cdata = typename data<T>::cdata;
-
-  explicit real_data(cdata target) :
+  explicit data(cdata target) :
       target_(std::move(target)) {
   }
 
-  virtual cdata target() const override {
+  cdata target() const {
     return target_;
   }
 
-  virtual size_t num_columns() const override {
+  size_t num_columns() const {
     return columns_.size();
   }
 
-  virtual size_t num_rows() const override {
+  size_t num_rows() const {
     return columns_.empty() ? 0: columns_[0].size();
   }
 
-  virtual cdata column(size_t i) const override {
+  cdata column(size_t i) const {
     return columns_.at(i).data();
   }
 
-  virtual std::vector<T> column_sample(size_t i, span<const size_t> indices) const override {
+  std::vector<T> column_sample(size_t i, span<const size_t> indices) const {
     return take(columns_.at(i).data(), indices);
   }
 

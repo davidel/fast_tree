@@ -20,10 +20,10 @@
 namespace fast_tree_test {
 
 template <typename T>
-std::unique_ptr<fast_tree::real_data<T>> create_real_data(size_t nrows, size_t ncols) {
+std::unique_ptr<fast_tree::data<T>> create_data(size_t nrows, size_t ncols) {
   fast_tree::rnd_generator gen;
-  std::unique_ptr<fast_tree::real_data<T>>
-      rdata = std::make_unique<fast_tree::real_data<T>>(fast_tree::randn<T>(nrows, &gen));
+  std::unique_ptr<fast_tree::data<T>>
+      rdata = std::make_unique<fast_tree::data<T>>(fast_tree::randn<T>(nrows, &gen));
 
   for (size_t i = 0; i < ncols; ++i) {
     rdata->add_column(fast_tree::randn<T>(nrows, &gen));
@@ -148,7 +148,7 @@ TEST(DataTest, API) {
   std::vector<float> values{1.2f, 9.7f, 0.3f, 5.8f, -1.8f};
   fast_tree::span<const float> sp_values(values);
 
-  fast_tree::real_data<float> rdata(sp_values);
+  fast_tree::data<float> rdata(sp_values);
 
   rdata.add_column(sp_values);
   rdata.add_column(sp_values);
@@ -156,7 +156,7 @@ TEST(DataTest, API) {
   EXPECT_EQ(rdata.num_columns(), 2);
   EXPECT_EQ(rdata.num_rows(), 5);
 
-  fast_tree::real_data<float>::cdata col = rdata.column(1);
+  fast_tree::data<float>::cdata col = rdata.column(1);
   EXPECT_EQ(col.data().data(), sp_values.data());
 
   std::size_t indices[] = {1, 3, 4};
@@ -168,7 +168,7 @@ TEST(DataTest, API) {
 TEST(BuildDataTest, API) {
   static const size_t N = 20;
   static const size_t C = 10;
-  std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  std::unique_ptr<fast_tree::data<float>> rdata = create_data<float>(N, C);
   std::shared_ptr<fast_tree::build_data<float>>
       bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
   EXPECT_EQ(bdata->column(2).size(), N);
@@ -190,7 +190,7 @@ TEST(BuildDataTest, API) {
 TEST(BuildTreeNodeTest, API) {
   static const size_t N = 20;
   static const size_t C = 10;
-  std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  std::unique_ptr<fast_tree::data<float>> rdata = create_data<float>(N, C);
   std::shared_ptr<fast_tree::build_data<float>>
       bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
 
@@ -215,7 +215,7 @@ TEST(BuildTreeNodeTest, API) {
 TEST(BuildTreeTest, Tree) {
   static const size_t N = 100;
   static const size_t C = 10;
-  std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  std::unique_ptr<fast_tree::data<float>> rdata = create_data<float>(N, C);
   std::shared_ptr<fast_tree::build_data<float>>
       bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
 
@@ -231,7 +231,7 @@ TEST(BuildTreeTest, Forest) {
   static const size_t N = 300000;
   static const size_t C = 1000;
   static const size_t T = 5;
-  std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  std::unique_ptr<fast_tree::data<float>> rdata = create_data<float>(N, C);
   std::shared_ptr<fast_tree::build_data<float>>
       bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
   fast_tree::rnd_generator gen;
