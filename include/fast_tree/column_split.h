@@ -75,7 +75,7 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
     #else
 
     if (data.size() > 2 * margin) {
-      std::vector<size_t> ccs = resample(data.size() - 2 * margin, 4, rndgen,
+      std::vector<size_t> ccs = resample(data.size() - 2 * margin, 8, rndgen,
                                          /*with_replacement=*/ true);
       for (size_t x : ccs) {
         size_t i = x + margin;

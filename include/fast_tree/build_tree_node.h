@@ -25,7 +25,7 @@ class build_tree_node {
 
   using split_fn = std::function<std::optional<split_result<value_type>> (span<const T>)>;
 
-  build_tree_node(const build_config& bcfg, std::unique_ptr<fast_tree::build_data<T>> bdata,
+  build_tree_node(const build_config& bcfg, std::shared_ptr<fast_tree::build_data<T>> bdata,
                   set_tree_fn setter_fn, const split_fn& splitter_fn,
                   rnd_generator* rndgen) :
       bcfg_(bcfg),
@@ -35,8 +35,8 @@ class build_tree_node {
       rndgen_(rndgen) {
   }
 
-  const fast_tree::build_data<value_type>& build_data() const {
-    return *bdata_;
+  const std::shared_ptr<fast_tree::build_data<value_type>>& build_data() const {
+    return bdata_;
   }
 
   std::vector<std::unique_ptr<build_tree_node>> split() const {
@@ -75,10 +75,10 @@ class build_tree_node {
       std::vector<size_t> left_indices = to_vector(indices[0]);
       std::vector<size_t> right_indices = to_vector(indices[1]);
 
-      std::unique_ptr<fast_tree::build_data<value_type>> left_data =
-          std::make_unique<fast_tree::build_data<value_type>>(*bdata_, std::move(left_indices));
-      std::unique_ptr<fast_tree::build_data<value_type>> right_data =
-          std::make_unique<fast_tree::build_data<value_type>>(*bdata_, std::move(right_indices));
+      std::shared_ptr<fast_tree::build_data<value_type>> left_data =
+          std::make_shared<fast_tree::build_data<value_type>>(bdata_, std::move(left_indices));
+      std::shared_ptr<fast_tree::build_data<value_type>> right_data =
+          std::make_shared<fast_tree::build_data<value_type>>(bdata_, std::move(right_indices));
 
       std::unique_ptr<tree_node<value_type>>
           node = std::make_unique<tree_node<value_type>>(*best_column, best_split->value);
@@ -108,7 +108,7 @@ class build_tree_node {
 
  private:
   const build_config& bcfg_;
-  std::unique_ptr<fast_tree::build_data<T>> bdata_;
+  std::shared_ptr<fast_tree::build_data<T>> bdata_;
   set_tree_fn set_fn_;
   const split_fn& split_fn_;
   rnd_generator* rndgen_;

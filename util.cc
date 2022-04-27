@@ -15,7 +15,7 @@ bitmap create_bitmap(size_t size, span<const size_t> indices) {
 std::vector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap) {
   std::vector<size_t> rindices;
 
-  rindices.reserve(indices.size() / 2);
+  rindices.reserve(indices.size());
   for (auto idx : indices) {
     if (bmap[idx]) {
       rindices.push_back(idx);

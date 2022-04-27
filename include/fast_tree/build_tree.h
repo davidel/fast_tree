@@ -11,13 +11,14 @@
 #include "fast_tree/data.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
+#include "fast_tree/util.h"
 
 namespace fast_tree {
 
 template <typename T>
-std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg, const data<T>& rdata,
+std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
+                                         std::shared_ptr<build_data<T>> bdata,
                                          rnd_generator* rndgen) {
-  std::unique_ptr<build_data<T>> bdata = std::make_unique<build_data<T>>(rdata);
   std::unique_ptr<tree_node<T>> root;
 
   auto setter = [&](std::unique_ptr<tree_node<T>> node) {
@@ -44,26 +45,26 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg, const data<T>
 
 template <typename T>
 std::vector<std::unique_ptr<tree_node<T>>>
-build_forest(const build_config& bcfg, const data<T>& rdata, size_t num_trees,
+build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, size_t num_trees,
              rnd_generator* rndgen) {
   std::vector<std::unique_ptr<tree_node<T>>> forest;
 
-  if ((bcfg.num_rows == consts::all || bcfg.num_rows >= rdata.num_rows()) &&
-      (bcfg.num_columns == consts::all || bcfg.num_columns >= rdata.num_columns())) {
+  if ((bcfg.num_rows == consts::all || bcfg.num_rows >= bdata->data().num_rows()) &&
+      (bcfg.num_columns == consts::all || bcfg.num_columns >= bdata->data().num_columns())) {
     num_trees = 1;
   }
 
   forest.reserve(num_trees);
   for (size_t i = 0; i < num_trees; ++i) {
-    std::unique_ptr<data<T>> sdata;
-    const data<T>* current_data = &rdata;
+    std::shared_ptr<build_data<T>> current_data = bdata;
 
-    if (bcfg.num_rows != consts::all && bcfg.num_rows < rdata.num_rows()) {
-      sdata = rdata.resample(bcfg.num_rows, rndgen);
-      current_data = sdata.get();
+    if (bcfg.num_rows != consts::all && bcfg.num_rows < bdata->data().num_rows()) {
+      std::vector<size_t> row_indices = resample(bdata->data().num_rows(), bcfg.num_rows, rndgen);
+
+      current_data = std::make_shared<build_data<T>>(std::move(current_data), std::move(row_indices));
     }
 
-    forest.push_back(build_tree(bcfg, *current_data, rndgen));
+    forest.push_back(build_tree(bcfg, std::move(current_data), rndgen));
   }
 
   return forest;

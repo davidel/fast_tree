@@ -18,15 +18,17 @@ class build_data {
 
   explicit build_data(const fast_tree::data<T>& xdata) :
       data_(xdata),
-      indices_(iota(xdata.num_rows())),
-      sorted_col_indices_(create_sorted_indices(xdata)) {
+      indices_(iota(data_.num_rows())),
+      mask_(data_.num_rows(), true),
+      sorted_col_indices_(data_.num_columns()) {
   }
 
-  build_data(const build_data& parent, std::vector<size_t> sub_indices) :
-      data_(parent.data()),
+  build_data(std::shared_ptr<build_data> parent, std::vector<size_t> sub_indices) :
+      parent_(std::move(parent)),
+      data_(parent_->data()),
       indices_(std::move(sub_indices)),
-      sorted_col_indices_(create_sorted_indices(parent.sorted_col_indices_,
-                                                indices_, data_.num_rows())) {
+      mask_(create_bitmap(data_.num_rows(), indices_)),
+      sorted_col_indices_(data_.num_columns()) {
   }
 
   span<const size_t> indices() const {
@@ -41,23 +43,26 @@ class build_data {
     return take(data_.target().data(), indices_);
   }
 
-  std::vector<T> column(size_t i) const {
-    return data_.column_sample(i, sorted_col_indices_[i]);
+  std::vector<T> column(size_t i) {
+    return data_.column_sample(i, column_indices(i));
   }
 
-  span<const size_t> column_indices(size_t i) const {
+  span<const size_t> column_indices(size_t i) {
+    if (sorted_col_indices_[i].empty()) {
+      if (parent_ == nullptr) {
+        typename fast_tree::data<T>::cdata col = data_.column(i);
+
+        sorted_col_indices_[i] = argsort(col);
+      } else {
+        sorted_col_indices_[i] = reduce_indices(parent_->column_indices(i), mask_);
+      }
+    }
+
     return sorted_col_indices_[i];
   }
 
-  std::vector<size_t> invmap_indices(size_t colno,
-                                     span<const size_t> indices) const {
-    span<const size_t> col_indices(sorted_col_indices_[colno]);
-
-    return take(col_indices, indices);
-  }
-
-  std::vector<span<const size_t>> split_indices(size_t colno, size_t split_index) const {
-    span<const size_t> col_indices(sorted_col_indices_[colno]);
+  std::vector<span<const size_t>> split_indices(size_t colno, size_t split_index) {
+    span<const size_t> col_indices = column_indices(colno);
     std::vector<span<const size_t>> splits;
 
     if (split_index > 0) {
@@ -71,38 +76,10 @@ class build_data {
   }
 
  private:
-  static std::vector<std::vector<size_t>> create_sorted_indices(
-      const fast_tree::data<T>& xdata) {
-    std::vector<std::vector<size_t>> colidx;
-
-    colidx.reserve(xdata.num_columns());
-    for (size_t i = 0; i < xdata.num_columns(); ++i) {
-      typename fast_tree::data<T>::cdata col = xdata.column(i);
-
-      colidx.push_back(argsort(col));
-    }
-
-    return colidx;
-  }
-
-  static std::vector<std::vector<size_t>> create_sorted_indices(
-      const std::vector<std::vector<size_t>>& sorted_col_indices,
-      span<const size_t> sub_indices, size_t size) {
-    std::vector<std::vector<size_t>> colidx;
-
-    colidx.reserve(sorted_col_indices.size());
-
-    bitmap mask = create_bitmap(size, sub_indices);
-
-    for (size_t i = 0; i < sorted_col_indices.size(); ++i) {
-      colidx.push_back(reduce_indices(sorted_col_indices[i], mask));
-    }
-
-    return colidx;
-  }
-
+  std::shared_ptr<build_data> parent_;
   const fast_tree::data<T>& data_;
   std::vector<size_t> indices_;
+  bitmap mask_;
   std::vector<std::vector<size_t>> sorted_col_indices_;
 };
 

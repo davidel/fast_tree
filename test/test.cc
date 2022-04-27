@@ -163,44 +163,36 @@ TEST(DataTest, API) {
   std::vector<float> scol = rdata.column_sample(0, indices);
   EXPECT_EQ(scol.size(), 3);
   EXPECT_EQ(scol[1], 5.8f);
-
-  fast_tree::rnd_generator gen;
-  std::unique_ptr<fast_tree::data<float>> sdata = rdata.resample(3, &gen);
-  EXPECT_LE(sdata->num_rows(), 3);
-  EXPECT_LE(sdata->target().size(), 3);
 }
 
 TEST(BuildDataTest, API) {
   static const size_t N = 20;
   static const size_t C = 10;
   std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  std::shared_ptr<fast_tree::build_data<float>>
+      bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
+  EXPECT_EQ(bdata->column(2).size(), N);
+  EXPECT_EQ(bdata->column_indices(1).size(), N);
 
-  fast_tree::build_data<float> bdata(*rdata);
-  EXPECT_EQ(bdata.column(2).size(), N);
-  EXPECT_EQ(bdata.column_indices(1).size(), N);
+  std::shared_ptr<fast_tree::build_data<float>>
+      sbdata = std::make_shared<fast_tree::build_data<float>>(
+          bdata, fast_tree::arange<size_t>(1, N, 2));
+  EXPECT_EQ(sbdata->indices().size(), C);
+  EXPECT_EQ(sbdata->column(5).size(), C);
+  EXPECT_EQ(sbdata->target().size(), C);
 
-  fast_tree::build_data<float> sbdata(bdata, fast_tree::arange<size_t>(1, N, 2));
-  EXPECT_EQ(sbdata.indices().size(), C);
-  EXPECT_EQ(sbdata.column(5).size(), C);
-  EXPECT_EQ(sbdata.target().size(), C);
+  fast_tree::span<const size_t> c4_indices = bdata->column_indices(4);
+  std::vector<fast_tree::span<const size_t>> split = bdata->split_indices(4, N / 2);
 
-  std::vector<size_t> inv_indices = sbdata.invmap_indices(
-      6, fast_tree::arange<size_t>(0, 5));
-  EXPECT_EQ(inv_indices.size(), 5);
-
-  fast_tree::span<const size_t> cidx = sbdata.column_indices(6);
-  EXPECT_LE(inv_indices.size(), cidx.size());
-  for (size_t i = 0; i < inv_indices.size(); ++i) {
-    EXPECT_EQ(inv_indices[i], cidx[i]);
-  }
+  EXPECT_EQ(split.size(), 2);
 }
 
 TEST(BuildTreeNodeTest, API) {
   static const size_t N = 20;
   static const size_t C = 10;
   std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
-  std::unique_ptr<fast_tree::build_data<float>>
-      bdata = std::make_unique<fast_tree::build_data<float>>(*rdata);
+  std::shared_ptr<fast_tree::build_data<float>>
+      bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
 
   std::unique_ptr<fast_tree::tree_node<float>> root;
 
@@ -224,27 +216,32 @@ TEST(BuildTreeTest, Tree) {
   static const size_t N = 100;
   static const size_t C = 10;
   std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  std::shared_ptr<fast_tree::build_data<float>>
+      bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
+
   fast_tree::build_config bcfg;
   fast_tree::rnd_generator gen;
 
-  std::unique_ptr<fast_tree::tree_node<float>> root = fast_tree::build_tree(bcfg, *rdata, &gen);
+  std::unique_ptr<fast_tree::tree_node<float>> root = fast_tree::build_tree(bcfg, bdata, &gen);
   ASSERT_NE(root, nullptr);
   EXPECT_FALSE(root->is_leaf());
 }
 
 TEST(BuildTreeTest, Forest) {
-  static const size_t N = 300;
-  static const size_t C = 10;
-  static const size_t T = 4;
+  static const size_t N = 300000;
+  static const size_t C = 1000;
+  static const size_t T = 5;
   std::unique_ptr<fast_tree::real_data<float>> rdata = create_real_data<float>(N, C);
+  std::shared_ptr<fast_tree::build_data<float>>
+      bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
   fast_tree::rnd_generator gen;
   fast_tree::build_config bcfg;
 
   bcfg.num_rows = N * 2 / 3;
-  bcfg.num_columns = C * 2 / 3;
+  bcfg.num_columns = C / 30;
 
   std::vector<std::unique_ptr<fast_tree::tree_node<float>>>
-      forest = fast_tree::build_forest(bcfg, *rdata, T, &gen);
+      forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
   EXPECT_EQ(forest.size(), T);
 }
 
