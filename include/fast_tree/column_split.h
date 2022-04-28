@@ -43,6 +43,21 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
   return [&bcfg, rndgen](span<const T> data) -> std::optional<split_result<T>> {
     using accum_type = double;
 
+    if (bcfg.min_leaf_size >= data.size()) {
+      return std::nullopt;
+    }
+
+    size_t margin = (bcfg.min_leaf_size + 1) / 2;
+    size_t left = margin;
+    size_t right = data.size() - margin;
+
+    while (left < right && (data[left] - data[0]) < bcfg.same_eps) {
+      ++left;
+    }
+    if (left >= right) {
+      return std::nullopt;
+    }
+
     accum_type sum = 0;
     std::vector<accum_type> sumvec;
 
@@ -55,35 +70,26 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
 
     double best_score = -1.0;
     size_t best_index = 0;
-    size_t margin = (bcfg.min_leaf_size + 1) / 2;
 
     #if 0
 
-    for (size_t i = margin; i + margin < data.size(); ++i) {
-      while (i + margin + 1 < data.size() && std::abs(data[i + 1] - data[i]) < bcfg.same_eps) {
-        ++i;
-      }
-      if (i + margin < data.size()) {
-        double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
-        if (score > best_score) {
-          best_score = score;
-          best_index = i;
-        }
+    for (size_t i = left; i < right; ++i) {
+      double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
+      if (score > best_score) {
+        best_score = score;
+        best_index = i;
       }
     }
 
     #else
 
-    if (data.size() > 2 * margin) {
-      std::vector<size_t> ccs = resample(data.size() - 2 * margin, 8, rndgen,
-                                         /*with_replacement=*/ true);
-      for (size_t x : ccs) {
-        size_t i = x + margin;
-        double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
-        if (score > best_score) {
-          best_score = score;
-          best_index = i;
-        }
+    std::vector<size_t> ccs = resample(right - left, 8, rndgen, /*with_replacement=*/ true);
+    for (size_t x : ccs) {
+      size_t i = x + left;
+      double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
+      if (score > best_score) {
+        best_score = score;
+        best_index = i;
       }
     }
 

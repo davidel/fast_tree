@@ -1,6 +1,5 @@
 #pragma once
 
-#include <deque>
 #include <memory>
 #include <vector>
 
@@ -26,7 +25,7 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
   };
 
   typename build_tree_node<T>::split_fn splitter = create_splitter<T>(bcfg, rndgen);
-  std::deque<std::unique_ptr<build_tree_node<T>>> queue;
+  std::vector<std::unique_ptr<build_tree_node<T>>> queue;
 
   queue.push_back(std::make_unique<build_tree_node<T>>(
       bcfg, std::move(bdata), std::move(setter), splitter, rndgen));
