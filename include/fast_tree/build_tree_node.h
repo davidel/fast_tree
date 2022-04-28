@@ -27,16 +27,13 @@ class build_tree_node {
 
   build_tree_node(const build_config& bcfg, std::shared_ptr<fast_tree::build_data<T>> bdata,
                   set_tree_fn setter_fn, const split_fn& splitter_fn,
-                  rnd_generator* rndgen) :
+                  rnd_generator* rndgen, size_t depth = 0) :
       bcfg_(bcfg),
       bdata_(std::move(bdata)),
       set_fn_(std::move(setter_fn)),
       split_fn_(std::move(splitter_fn)),
-      rndgen_(rndgen) {
-  }
-
-  const std::shared_ptr<fast_tree::build_data<value_type>>& build_data() const {
-    return bdata_;
+      rndgen_(rndgen),
+      depth_(depth) {
   }
 
   std::vector<std::unique_ptr<build_tree_node>> split() const {
@@ -96,11 +93,11 @@ class build_tree_node {
       leaves.push_back(
           std::make_unique<build_tree_node<value_type>>(bcfg_, std::move(left_data),
                                                         std::move(left_setter), split_fn_,
-                                                        rndgen_));
+                                                        rndgen_, /*depth=*/ depth_ + 1));
       leaves.push_back(
           std::make_unique<build_tree_node<value_type>>(bcfg_, std::move(right_data),
                                                         std::move(right_setter), split_fn_,
-                                                        rndgen_));
+                                                        rndgen_, /*depth=*/ depth_ + 1));
     }
 
     return leaves;
@@ -112,6 +109,7 @@ class build_tree_node {
   set_tree_fn set_fn_;
   const split_fn& split_fn_;
   rnd_generator* rndgen_;
+  size_t depth_;
 };
 
 }
