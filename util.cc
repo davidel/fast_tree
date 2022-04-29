@@ -12,8 +12,9 @@ bitmap create_bitmap(size_t size, span<const size_t> indices) {
   return bmap;
 }
 
-fvector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap) {
-  fvector<size_t> rindices;
+fvector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap,
+                               std::pmr::memory_resource* mem) {
+  fvector<size_t> rindices(mem != nullptr ? mem : std::pmr::get_default_resource());
 
   rindices.reserve(indices.size());
   for (size_t ix : indices) {
@@ -25,8 +26,8 @@ fvector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap) {
   return rindices;
 }
 
-fvector<size_t> iota(size_t size, size_t base) {
-  fvector<size_t> indices(size);
+fvector<size_t> iota(size_t size, size_t base, std::pmr::memory_resource* mem) {
+  fvector<size_t> indices(size, base, mem != nullptr ? mem : std::pmr::get_default_resource());
 
   std::iota(indices.begin(), indices.end(), base);
 

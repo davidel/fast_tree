@@ -18,17 +18,21 @@ class build_data {
 
   explicit build_data(const fast_tree::data<T>& xdata) :
       data_(xdata),
+      pool_(50000000),
+      mem_(&pool_),
       indices_(iota(data_.num_rows())),
       mask_(data_.num_rows(), true),
-      sorted_col_indices_(data_.num_columns()) {
+      sorted_col_indices_(data_.num_columns(), &mem_) {
   }
 
   build_data(std::shared_ptr<build_data> parent, fvector<size_t> sub_indices) :
       parent_(std::move(parent)),
       data_(parent_->data()),
+      pool_(50000000),
+      mem_(&pool_),
       indices_(std::move(sub_indices)),
       mask_(create_bitmap(data_.num_rows(), indices_)),
-      sorted_col_indices_(data_.num_columns()) {
+      sorted_col_indices_(data_.num_columns(), &mem_) {
   }
 
   span<const size_t> indices() const {
@@ -52,9 +56,10 @@ class build_data {
       if (parent_ == nullptr) {
         typename fast_tree::data<T>::cdata col = data_.column(i);
 
-        sorted_col_indices_[i] = argsort(col);
+        sorted_col_indices_[i] = argsort(col, /*descending=*/ false, /*mem=*/ &mem_);
       } else {
-        sorted_col_indices_[i] = reduce_indices(parent_->column_indices(i), mask_);
+        sorted_col_indices_[i] = reduce_indices(parent_->column_indices(i), mask_,
+                                                /*mem=*/ &mem_);
       }
     }
 
@@ -78,6 +83,8 @@ class build_data {
  private:
   std::shared_ptr<build_data> parent_;
   const fast_tree::data<T>& data_;
+  std::pmr::monotonic_buffer_resource pool_;
+  std::pmr::unsynchronized_pool_resource mem_;
   fvector<size_t> indices_;
   bitmap mask_;
   fvector<fvector<size_t>> sorted_col_indices_;

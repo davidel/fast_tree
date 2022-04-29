@@ -16,9 +16,10 @@ namespace fast_tree {
 
 bitmap create_bitmap(size_t size, span<const size_t> indices);
 
-fvector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap);
+fvector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap,
+                               std::pmr::memory_resource* mem = nullptr);
 
-fvector<size_t> iota(size_t size, size_t base = 0);
+fvector<size_t> iota(size_t size, size_t base = 0, std::pmr::memory_resource* mem = nullptr);
 
 template<typename T>
 fvector<T> arange(T base, T end, T step = 1) {
@@ -52,8 +53,9 @@ fvector<T> randn(size_t count, G* rgen, T rmin = 0, T rmax = 1) {
 }
 
 template<typename T>
-fvector<size_t> argsort(const T& array, bool descending = false) {
-  fvector<size_t> indices = iota(array.size());
+fvector<size_t> argsort(const T& array, bool descending = false,
+                        std::pmr::memory_resource* mem = nullptr) {
+  fvector<size_t> indices = iota(array.size(), 0, mem);
 
   if (descending) {
     std::sort(indices.begin(), indices.end(),
@@ -71,8 +73,9 @@ fvector<size_t> argsort(const T& array, bool descending = false) {
 }
 
 template<typename T>
-fvector<T> take(span<const T> vec, span<const size_t> indices) {
-  fvector<T> values;
+fvector<T> take(span<const T> vec, span<const size_t> indices,
+                std::pmr::memory_resource* mem = nullptr) {
+  fvector<T> values(mem != nullptr ? mem : std::pmr::get_default_resource());
 
   values.reserve(indices.size());
   for (size_t ix : indices) {
