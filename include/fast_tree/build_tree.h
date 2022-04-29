@@ -25,13 +25,13 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
   };
 
   typename build_tree_node<T>::split_fn splitter = create_splitter<T>(bcfg, rndgen);
-  std::vector<std::unique_ptr<build_tree_node<T>>> queue;
+  fvector<std::unique_ptr<build_tree_node<T>>> queue;
 
   queue.push_back(std::make_unique<build_tree_node<T>>(
       bcfg, std::move(bdata), std::move(setter), splitter, rndgen));
 
   while (!queue.empty()) {
-    std::vector<std::unique_ptr<build_tree_node<T>>> split = queue.back()->split();
+    fvector<std::unique_ptr<build_tree_node<T>>> split = queue.back()->split();
 
     queue.pop_back();
     for (size_t i = 0; i < split.size(); ++i) {
@@ -43,10 +43,10 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
 }
 
 template <typename T>
-std::vector<std::unique_ptr<tree_node<T>>>
+fvector<std::unique_ptr<tree_node<T>>>
 build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, size_t num_trees,
              rnd_generator* rndgen) {
-  std::vector<std::unique_ptr<tree_node<T>>> forest;
+  fvector<std::unique_ptr<tree_node<T>>> forest;
 
   if ((bcfg.num_rows == consts::all || bcfg.num_rows >= bdata->data().num_rows()) &&
       (bcfg.num_columns == consts::all || bcfg.num_columns >= bdata->data().num_columns())) {
@@ -58,7 +58,7 @@ build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, siz
     std::shared_ptr<build_data<T>> current_data = bdata;
 
     if (bcfg.num_rows != consts::all && bcfg.num_rows < bdata->data().num_rows()) {
-      std::vector<size_t> row_indices = resample(bdata->data().num_rows(), bcfg.num_rows, rndgen);
+      fvector<size_t> row_indices = resample(bdata->data().num_rows(), bcfg.num_rows, rndgen);
 
       current_data = std::make_shared<build_data<T>>(std::move(current_data), std::move(row_indices));
     }

@@ -59,7 +59,7 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
     }
 
     accum_type sum = 0;
-    std::vector<accum_type> sumvec;
+    fvector<accum_type> sumvec;
 
     sumvec.reserve(data.size());
     for (T val : data) {
@@ -83,7 +83,7 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
 
     #else
 
-    std::vector<size_t> ccs = resample(right - left, 8, rndgen, /*with_replacement=*/ true);
+    fvector<size_t> ccs = resample(right - left, 8, rndgen, /*with_replacement=*/ true);
     for (size_t x : ccs) {
       size_t i = x + left;
       double score = error - detail::split_error<T, accum_type>(data, i, sumvec);

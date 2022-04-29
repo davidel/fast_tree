@@ -68,7 +68,7 @@ TEST(StorageSpanTest, API) {
   EXPECT_EQ(ssp_arr.data().data(), array);
 
   fast_tree::storage_span<int>
-      vsp_arr(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8});
+      vsp_arr(fast_tree::fvector<int>{1, 2, 3, 4, 5, 6, 7, 8});
   EXPECT_EQ(vsp_arr.size(), 8);
   EXPECT_NE(vsp_arr.storage(), nullptr);
 
@@ -85,7 +85,7 @@ TEST(UtilTest, Argsort) {
   float array[] = {1.2, -0.8, 12.44, 8.9, 5.1, 16.25, 2.4};
   fast_tree::span<float> sp_arr(array);
 
-  std::vector<size_t> indices = fast_tree::argsort(sp_arr);
+  fast_tree::fvector<size_t> indices = fast_tree::argsort(sp_arr);
   for (size_t i = 1; i < indices.size(); ++i) {
     EXPECT_LE(sp_arr[indices[i - 1]], sp_arr[indices[i]]);
   }
@@ -95,7 +95,7 @@ TEST(UtilTest, ToVector) {
   float array[] = {1.2, -0.8, 12.44, 8.9, 5.1, 16.25, 2.4};
   fast_tree::span<const float> sp_arr(array);
 
-  std::vector<float> vec = fast_tree::to_vector(sp_arr);
+  fast_tree::fvector<float> vec = fast_tree::to_vector(sp_arr);
 
   ASSERT_EQ(vec.size(), sp_arr.size());
   for (size_t i = 0; i < vec.size(); ++i) {
@@ -112,7 +112,7 @@ TEST(UtilTest, ReduceIndices) {
   bmap[0] = true;
   bmap[8] = true;
 
-  std::vector<size_t> rindices = fast_tree::reduce_indices(indices, bmap);
+  fast_tree::fvector<size_t> rindices = fast_tree::reduce_indices(indices, bmap);
 
   EXPECT_EQ(rindices.size(), 3);
   EXPECT_EQ(rindices[0], 3);
@@ -122,13 +122,13 @@ TEST(UtilTest, ReduceIndices) {
 
 TEST(UtilTest, Resample) {
   fast_tree::rnd_generator gen;
-  std::vector<size_t> indices = fast_tree::resample(100, 90, &gen);
+  fast_tree::fvector<size_t> indices = fast_tree::resample(100, 90, &gen);
 
   EXPECT_LE(indices.size(), 90);
 }
 
 TEST(TreeNodeTest, API) {
-  std::vector<float> values{1.2, 9.7, 0.3, 5.8};
+  fast_tree::fvector<float> values{1.2, 9.7, 0.3, 5.8};
   fast_tree::tree_node<float> leaf_node(values);
 
   EXPECT_TRUE(leaf_node.is_leaf());
@@ -145,7 +145,7 @@ TEST(TreeNodeTest, API) {
 }
 
 TEST(DataTest, API) {
-  std::vector<float> values{1.2f, 9.7f, 0.3f, 5.8f, -1.8f};
+  fast_tree::fvector<float> values{1.2f, 9.7f, 0.3f, 5.8f, -1.8f};
   fast_tree::span<const float> sp_values(values);
 
   fast_tree::data<float> rdata(sp_values);
@@ -160,7 +160,7 @@ TEST(DataTest, API) {
   EXPECT_EQ(col.data().data(), sp_values.data());
 
   std::size_t indices[] = {1, 3, 4};
-  std::vector<float> scol = rdata.column_sample(0, indices);
+  fast_tree::fvector<float> scol = rdata.column_sample(0, indices);
   EXPECT_EQ(scol.size(), 3);
   EXPECT_EQ(scol[1], 5.8f);
 }
@@ -182,7 +182,7 @@ TEST(BuildDataTest, API) {
   EXPECT_EQ(sbdata->target().size(), C);
 
   fast_tree::span<const size_t> c4_indices = bdata->column_indices(4);
-  std::vector<fast_tree::span<const size_t>> split = bdata->split_indices(4, N / 2);
+  fast_tree::fvector<fast_tree::span<const size_t>> split = bdata->split_indices(4, N / 2);
 
   EXPECT_EQ(split.size(), 2);
 }
@@ -207,7 +207,7 @@ TEST(BuildTreeNodeTest, API) {
   fast_tree::build_tree_node<float>
       btn(bcfg, std::move(bdata), std::move(setter), splitter, &gen);
 
-  std::vector<std::unique_ptr<fast_tree::build_tree_node<float>>>
+  fast_tree::fvector<std::unique_ptr<fast_tree::build_tree_node<float>>>
       split = btn.split();
   EXPECT_EQ(split.size(), 2);
 }
@@ -240,7 +240,7 @@ TEST(BuildTreeTest, Forest) {
   bcfg.num_rows = N * 2 / 3;
   bcfg.num_columns = C / 30;
 
-  std::vector<std::unique_ptr<fast_tree::tree_node<float>>>
+  fast_tree::fvector<std::unique_ptr<fast_tree::tree_node<float>>>
       forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
   EXPECT_EQ(forest.size(), T);
 }

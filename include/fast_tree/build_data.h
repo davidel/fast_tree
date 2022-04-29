@@ -23,7 +23,7 @@ class build_data {
       sorted_col_indices_(data_.num_columns()) {
   }
 
-  build_data(std::shared_ptr<build_data> parent, std::vector<size_t> sub_indices) :
+  build_data(std::shared_ptr<build_data> parent, fvector<size_t> sub_indices) :
       parent_(std::move(parent)),
       data_(parent_->data()),
       indices_(std::move(sub_indices)),
@@ -39,11 +39,11 @@ class build_data {
     return data_;
   }
 
-  std::vector<T> target() const {
+  fvector<T> target() const {
     return take(data_.target().data(), indices_);
   }
 
-  std::vector<T> column(size_t i) {
+  fvector<T> column(size_t i) {
     return data_.column_sample(i, column_indices(i));
   }
 
@@ -61,9 +61,9 @@ class build_data {
     return sorted_col_indices_[i];
   }
 
-  std::vector<span<const size_t>> split_indices(size_t colno, size_t split_index) {
+  fvector<span<const size_t>> split_indices(size_t colno, size_t split_index) {
     span<const size_t> col_indices = column_indices(colno);
-    std::vector<span<const size_t>> splits;
+    fvector<span<const size_t>> splits;
 
     if (split_index > 0) {
       splits.push_back(col_indices.subspan(0, split_index));
@@ -78,9 +78,9 @@ class build_data {
  private:
   std::shared_ptr<build_data> parent_;
   const fast_tree::data<T>& data_;
-  std::vector<size_t> indices_;
+  fvector<size_t> indices_;
   bitmap mask_;
-  std::vector<std::vector<size_t>> sorted_col_indices_;
+  fvector<fvector<size_t>> sorted_col_indices_;
 };
 
 }

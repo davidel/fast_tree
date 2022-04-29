@@ -36,14 +36,14 @@ class build_tree_node {
       depth_(depth) {
   }
 
-  std::vector<std::unique_ptr<build_tree_node>> split() const {
+  fvector<std::unique_ptr<build_tree_node>> split() const {
     std::optional<split_result<value_type>> best_split;
     std::optional<size_t> best_column;
 
-    std::vector<size_t>
+    fvector<size_t>
         col_indices = resample(bdata_->data().num_columns(), bcfg_.num_columns, rndgen_);
     for (size_t c: col_indices) {
-      std::vector<value_type> col = bdata_->column(c);
+      fvector<value_type> col = bdata_->column(c);
       std::optional<split_result<value_type>> sres = split_fn_(col);
 
       if (sres && (!best_split || sres->score > best_split->score)) {
@@ -52,7 +52,7 @@ class build_tree_node {
       }
     }
 
-    std::vector<std::unique_ptr<build_tree_node>> leaves;
+    fvector<std::unique_ptr<build_tree_node>> leaves;
 
     if (!best_split) {
       std::unique_ptr<tree_node<value_type>>
@@ -60,7 +60,7 @@ class build_tree_node {
 
       set_fn_(std::move(node));
     } else {
-      std::vector<span<const size_t>>
+      fvector<span<const size_t>>
           indices = bdata_->split_indices(*best_column, best_split->index);
 
       if (indices.size() != 2) {
@@ -69,8 +69,8 @@ class build_tree_node {
                                  << bdata_->data().num_columns());
       }
 
-      std::vector<size_t> left_indices = to_vector(indices[0]);
-      std::vector<size_t> right_indices = to_vector(indices[1]);
+      fvector<size_t> left_indices = to_vector(indices[0]);
+      fvector<size_t> right_indices = to_vector(indices[1]);
 
       std::shared_ptr<fast_tree::build_data<value_type>> left_data =
           std::make_shared<fast_tree::build_data<value_type>>(bdata_, std::move(left_indices));

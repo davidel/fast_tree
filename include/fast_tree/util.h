@@ -16,19 +16,19 @@ namespace fast_tree {
 
 bitmap create_bitmap(size_t size, span<const size_t> indices);
 
-std::vector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap);
+fvector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bmap);
 
-std::vector<size_t> iota(size_t size, size_t base = 0);
+fvector<size_t> iota(size_t size, size_t base = 0);
 
 template<typename T>
-std::vector<T> arange(T base, T end, T step = 1) {
+fvector<T> arange(T base, T end, T step = 1) {
   if ((end > base && step <= 0) || (base > end && step >= 0)) {
     throw std::invalid_argument(string_formatter()
                                 << "Invalid range " << base << " ... " << end
                                 << " with step " << step);
   }
 
-  std::vector<T> values;
+  fvector<T> values;
 
   values.reserve(static_cast<size_t>((end - base) / step) + 1);
   for (T val = base; val < end; val += step) {
@@ -39,9 +39,9 @@ std::vector<T> arange(T base, T end, T step = 1) {
 }
 
 template<typename T, typename G>
-std::vector<T> randn(size_t count, G* rgen, T rmin = 0, T rmax = 1) {
+fvector<T> randn(size_t count, G* rgen, T rmin = 0, T rmax = 1) {
   std::uniform_real_distribution<T> gen(rmin, rmax);
-  std::vector<T> values;
+  fvector<T> values;
 
   values.reserve(count);
   for (size_t i = 0; i < count; ++i) {
@@ -52,8 +52,8 @@ std::vector<T> randn(size_t count, G* rgen, T rmin = 0, T rmax = 1) {
 }
 
 template<typename T>
-std::vector<size_t> argsort(const T& array, bool descending = false) {
-  std::vector<size_t> indices = iota(array.size());
+fvector<size_t> argsort(const T& array, bool descending = false) {
+  fvector<size_t> indices = iota(array.size());
 
   if (descending) {
     std::sort(indices.begin(), indices.end(),
@@ -71,8 +71,8 @@ std::vector<size_t> argsort(const T& array, bool descending = false) {
 }
 
 template<typename T>
-std::vector<T> take(span<const T> vec, span<const size_t> indices) {
-  std::vector<T> values;
+fvector<T> take(span<const T> vec, span<const size_t> indices) {
+  fvector<T> values;
 
   values.reserve(indices.size());
   for (size_t ix : indices) {
@@ -83,14 +83,14 @@ std::vector<T> take(span<const T> vec, span<const size_t> indices) {
 }
 
 template<typename T>
-std::vector<std::remove_cv_t<T>> to_vector(span<const T> data) {
-  return std::vector<std::remove_cv_t<T>>(data.data(), data.data() + data.size());
+fvector<std::remove_cv_t<T>> to_vector(span<const T> data) {
+  return fvector<std::remove_cv_t<T>>(data.data(), data.data() + data.size());
 }
 
 template<typename G>
-std::vector<size_t> resample(size_t size, size_t count, G* rgen,
-                             bool with_replacement = false) {
-  std::vector<size_t> indices;
+fvector<size_t> resample(size_t size, size_t count, G* rgen,
+                         bool with_replacement = false) {
+  fvector<size_t> indices;
 
   if (count == consts::all || count >= size) {
     indices = iota(size);

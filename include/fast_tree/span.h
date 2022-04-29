@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "fast_tree/string_formatter.h"
+#include "fast_tree/types.h"
 
 namespace fast_tree {
 
@@ -43,13 +44,13 @@ class span {
   }
 
   template <typename U>
-  span(std::vector<U>& data) :
+  span(fvector<U>& data) :
       data_(data.data()),
       size_(data.size()) {
   }
 
   template <typename U>
-  span(const std::vector<U>& data) :
+  span(const fvector<U>& data) :
       data_(data.data()),
       size_(data.size()) {
   }

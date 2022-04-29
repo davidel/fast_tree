@@ -38,7 +38,7 @@ class data {
     return columns_.at(i).data();
   }
 
-  std::vector<T> column_sample(size_t i, span<const size_t> indices) const {
+  fvector<T> column_sample(size_t i, span<const size_t> indices) const {
     return take(columns_.at(i).data(), indices);
   }
 
@@ -54,7 +54,7 @@ class data {
   }
 
  private:
-  std::vector<cdata> columns_;
+  fvector<cdata> columns_;
   cdata target_;
 };
 

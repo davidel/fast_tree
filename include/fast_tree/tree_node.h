@@ -15,7 +15,7 @@ class tree_node {
 
   static constexpr size_t no_index = static_cast<size_t>(-1);
 
-  explicit tree_node(std::vector<value_type> values) :
+  explicit tree_node(fvector<value_type> values) :
       splitter_(),
       values_(std::move(values)) {
   }
@@ -60,7 +60,7 @@ class tree_node {
  private:
   size_t index_ = no_index;
   value_type splitter_;
-  std::vector<value_type> values_;
+  fvector<value_type> values_;
   std::unique_ptr<tree_node> left_;
   std::unique_ptr<tree_node> right_;
 };
