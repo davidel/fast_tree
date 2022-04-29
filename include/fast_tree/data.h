@@ -5,9 +5,9 @@
 #include <stdexcept>
 #include <vector>
 
+#include "fast_tree/assert.h"
 #include "fast_tree/span.h"
 #include "fast_tree/storage_span.h"
-#include "fast_tree/string_formatter.h"
 #include "fast_tree/types.h"
 #include "fast_tree/util.h"
 
@@ -43,11 +43,10 @@ class data {
   }
 
   size_t add_column(cdata col) {
-    if (target_.size() != col.size()) {
-      throw std::invalid_argument(string_formatter()
-                                  << "All columns must have the same size: "
-                                  << target_.size() << " != " << col.size());
-    }
+    FT_ASSERT(target_.size() == col.size())
+        << "All columns must have the same size: "
+        << target_.size() << " != " << col.size();
+
     columns_.push_back(std::move(col));
 
     return columns_.size() - 1;
