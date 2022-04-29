@@ -13,7 +13,7 @@ class storage_span {
  public:
   storage_span() = default;
 
-  storage_span(span<const T> data) :
+  storage_span(span<T> data) :
       data_(data) {
   }
 
@@ -26,11 +26,11 @@ class storage_span {
     return data_.size();
   }
 
-  const T& operator[](size_t i) const {
+  T& operator[](size_t i) const {
     return data_[i];
   }
 
-  span<const T> data() const {
+  span<T> data() const {
     return data_;
   }
 
@@ -40,7 +40,7 @@ class storage_span {
 
  private:
   std::shared_ptr<std::vector<T>> storage_;
-  span<const T> data_;
+  span<T> data_;
 };
 
 }

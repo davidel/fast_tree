@@ -3,6 +3,7 @@
 #include <memory>
 #include <random>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 #include "fast_tree/assert.h"
@@ -38,8 +39,13 @@ class data {
     return columns_.at(i).data();
   }
 
-  std::vector<T> column_sample(size_t i, span<const size_t> indices) const {
+  std::vector<std::remove_cv_t<T>> column_sample(size_t i, span<const size_t> indices) const {
     return take(columns_.at(i).data(), indices);
+  }
+
+  template <typename U>
+  span<U> column_sample(size_t i, span<const size_t> indices, span<U> out) const {
+    return take(columns_.at(i).data(), indices, out);
   }
 
   size_t add_column(cdata col) {

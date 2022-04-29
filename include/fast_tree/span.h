@@ -13,19 +13,19 @@ class span {
  public:
   using value_type = T;
 
-  using iterator = value_type*;
+  using iterator = T*;
 
   static constexpr size_t no_size = static_cast<size_t>(-1);
 
   span() = default;
 
-  span(value_type* data, size_t size) :
+  span(T* data, size_t size) :
       data_(data),
       size_(size) {
   }
 
   template <size_t N>
-  span(value_type (&data)[N]) :
+  span(T (&data)[N]) :
       data_(data),
       size_(N) {
   }
@@ -70,7 +70,7 @@ class span {
     return data() + size();
   }
 
-  value_type* data() const {
+  T* data() const {
     return data_;
   }
 
@@ -82,25 +82,25 @@ class span {
     return size() == 0;
   }
 
-  value_type& front() const {
+  T& front() const {
     if (empty()) {
       throw std::out_of_range("Tring to access empty span");
     }
     return data()[0];
   }
 
-  value_type& back() const {
+  T& back() const {
     if (empty()) {
       throw std::out_of_range("Tring to access empty span");
     }
     return data()[size() - 1];
   }
 
-  value_type& operator[](size_t i) const {
+  T& operator[](size_t i) const {
     return data_[i];
   }
 
-  value_type& at(size_t i) const {
+  T& at(size_t i) const {
     if (i >= size_) {
       throw std::out_of_range(string_formatter()
                               << "Index " << i << " out of range (max " << size_ << ")");
@@ -125,7 +125,7 @@ class span {
   }
 
  private:
-  value_type* data_ = nullptr;
+  T* data_ = nullptr;
   size_t size_ = 0;
 };
 

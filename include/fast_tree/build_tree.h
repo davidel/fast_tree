@@ -60,7 +60,7 @@ build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, siz
     if (bcfg.num_rows != consts::all && bcfg.num_rows < bdata->data().num_rows()) {
       std::vector<size_t> row_indices = resample(bdata->data().num_rows(), bcfg.num_rows, rndgen);
 
-      current_data = std::make_shared<build_data<T>>(std::move(current_data), std::move(row_indices));
+      current_data = std::make_shared<build_data<T>>(bdata->data(), std::move(row_indices));
     }
 
     forest.push_back(build_tree(bcfg, std::move(current_data), rndgen));
