@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "fast_tree/assert.h"
 #include "fast_tree/constants.h"
 #include "fast_tree/span.h"
 #include "fast_tree/string_formatter.h"
@@ -80,6 +81,19 @@ std::vector<T> take(span<const T> vec, span<const size_t> indices) {
   }
 
   return values;
+}
+
+template<typename T>
+span<T> take_out(span<const T> vec, span<const size_t> indices, span<T> out) {
+  FT_ASSERT(indices.size() < out.size()) << "Buffer too small";
+  T* data = out.data();
+  size_t count = 0;
+
+  for (size_t ix : indices) {
+    data[count++] = vec[ix];
+  }
+
+  return span<T>(data, count);
 }
 
 template<typename T>

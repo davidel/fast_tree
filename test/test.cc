@@ -127,6 +127,27 @@ TEST(UtilTest, Resample) {
   EXPECT_LE(indices.size(), 90);
 }
 
+TEST(UtilTest, Take) {
+  const size_t N = 20;
+  fast_tree::rnd_generator gen;
+  std::vector<float> values = fast_tree::randn<float>(N, &gen);
+  std::vector<size_t> indices{2, 4, 7, 11};
+
+  std::vector<float> tvalues = fast_tree::take<float>(values, indices);
+  ASSERT_EQ(tvalues.size(), indices.size());
+  for (size_t i = 0; i < indices.size(); ++i) {
+    EXPECT_EQ(tvalues[i], values[indices[i]]);
+  }
+
+  std::unique_ptr<float[]> buffer = std::make_unique<float[]>(N);
+  fast_tree::span<float> tovalues =
+      fast_tree::take_out<float>(values, indices, fast_tree::span<float>(buffer.get(), N));
+  ASSERT_EQ(tovalues.size(), indices.size());
+  for (size_t i = 0; i < indices.size(); ++i) {
+    EXPECT_EQ(tovalues[i], values[indices[i]]);
+  }
+}
+
 TEST(TreeNodeTest, API) {
   std::vector<float> values{1.2, 9.7, 0.3, 5.8};
   fast_tree::tree_node<float> leaf_node(values);
@@ -228,9 +249,9 @@ TEST(BuildTreeTest, Tree) {
 }
 
 TEST(BuildTreeTest, Forest) {
-  static const size_t N = 300000;
-  static const size_t C = 1000;
-  static const size_t T = 5;
+  static const size_t N = 300;
+  static const size_t C = 30;
+  static const size_t T = 1;
   std::unique_ptr<fast_tree::data<float>> rdata = create_data<float>(N, C);
   std::shared_ptr<fast_tree::build_data<float>>
       bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);
@@ -238,7 +259,7 @@ TEST(BuildTreeTest, Forest) {
   fast_tree::build_config bcfg;
 
   bcfg.num_rows = N * 2 / 3;
-  bcfg.num_columns = C / 30;
+  bcfg.num_columns = C / 3;
 
   std::vector<std::unique_ptr<fast_tree::tree_node<float>>>
       forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
