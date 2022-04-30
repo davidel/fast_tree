@@ -69,14 +69,14 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
     }
     double error = detail::span_error(data, static_cast<T>(sumvec.back() / data.size()));
 
-    double best_score = -1.0;
+    std::optional<double> best_score;
     size_t best_index = 0;
 
     #if 0
 
     for (size_t i = left; i < right; ++i) {
       double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
-      if (score > best_score) {
+      if (!best_score || score > *best_score) {
         best_score = score;
         best_index = i;
       }
@@ -84,11 +84,12 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
 
     #else
 
-    std::vector<size_t> ccs = resample(right - left, 8, rndgen, /*with_replacement=*/ true);
+    std::vector<size_t> ccs = resample(right - left, bcfg.num_split_points, rndgen,
+                                       /*with_replacement=*/ true);
     for (size_t x : ccs) {
       size_t i = x + left;
       double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
-      if (score > best_score) {
+      if (!best_score || score > *best_score) {
         best_score = score;
         best_index = i;
       }
@@ -96,11 +97,11 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
 
     #endif
 
-    if (best_score <= 0.0) {
+    if (!best_score || *best_score <= bcfg.min_split_error) {
       return std::nullopt;
     }
 
-    return split_result{best_index, best_score};
+    return split_result{best_index, *best_score};
   };
 }
 
