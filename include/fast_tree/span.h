@@ -1,13 +1,13 @@
 #pragma once
 
 #include <array>
-#include <stdexcept>
 #include <vector>
 
-#include "fast_tree/string_formatter.h"
+#include "fast_tree/assert.h"
 
 namespace fast_tree {
 
+// Can't use -std=c++-20 ATM.
 template <typename T>
 class span {
  public:
@@ -83,16 +83,14 @@ class span {
   }
 
   T& front() const {
-    if (empty()) {
-      throw std::out_of_range("Tring to access empty span");
-    }
+    FT_ASSERT(!empty()) << "Tring to access empty span";
+
     return data()[0];
   }
 
   T& back() const {
-    if (empty()) {
-      throw std::out_of_range("Tring to access empty span");
-    }
+    FT_ASSERT(!empty()) << "Tring to access empty span";
+
     return data()[size() - 1];
   }
 
@@ -101,25 +99,19 @@ class span {
   }
 
   T& at(size_t i) const {
-    if (i >= size_) {
-      throw std::out_of_range(string_formatter()
-                              << "Index " << i << " out of range (max " << size_ << ")");
-    }
+    FT_ASSERT(i < size_) << "Index " << i << " out of range (max " << size_ << ")";
+
     return data_[i];
   }
 
   span subspan(size_t pos, size_t size = no_size) const {
-    if (pos > size_) {
-      throw std::out_of_range(string_formatter()
-                              << "Position " << pos << " out of range (max " << size_ << ")");
-    }
+    FT_ASSERT(pos <= size_) << "Position " << pos << " out of range (max " << size_ << ")";
+
     if (size == no_size) {
       size = size_ - pos;
     }
-    if (pos + size > size_) {
-      throw std::out_of_range(string_formatter()
-                              << "Position " << (pos + size) << " out of range (max " << size_ << ")");
-    }
+    FT_ASSERT(pos + size <= size_) << "Position " << (pos + size) << " out of range (max "
+                                   << size_ << ")";
 
     return span(data_ + pos, size);
   }

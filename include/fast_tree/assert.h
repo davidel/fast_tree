@@ -3,8 +3,6 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "fast_tree/types.h"
-
 namespace fast_tree {
 namespace detail {
 
