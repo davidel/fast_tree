@@ -58,6 +58,12 @@ class build_data {
     return take(data_.target().data(), indices());
   }
 
+  template <typename U>
+  span<U> target(span<U> out) const {
+    return take(data_.target().data(), indices(), out);
+  }
+
+
   std::vector<std::remove_cv_t<T>> column(size_t i) const {
     return data_.column_sample(i, indices());
   }

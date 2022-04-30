@@ -80,8 +80,8 @@ class build_tree_node {
       auto left_setter = [node_ptr](std::unique_ptr<tree_node<T>> lnode) {
         node_ptr->set_left(std::move(lnode));
       };
-      auto right_setter = [node_ptr](std::unique_ptr<tree_node<T>> lnode) {
-        node_ptr->set_right(std::move(lnode));
+      auto right_setter = [node_ptr](std::unique_ptr<tree_node<T>> rnode) {
+        node_ptr->set_right(std::move(rnode));
       };
 
       set_fn_(std::move(node));

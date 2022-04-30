@@ -15,12 +15,12 @@ class tree_node {
 
   static constexpr size_t no_index = static_cast<size_t>(-1);
 
-  explicit tree_node(std::vector<value_type> values) :
+  explicit tree_node(std::vector<T> values) :
       splitter_(),
       values_(std::move(values)) {
   }
 
-  tree_node(size_t index, const value_type& splitter) :
+  tree_node(size_t index, const T& splitter) :
       index_(index),
       splitter_(splitter) {
   }
@@ -33,11 +33,11 @@ class tree_node {
     return index_;
   }
 
-  const value_type& splitter() const {
+  const T& splitter() const {
     return splitter_;
   }
 
-  span<const value_type> values() const {
+  span<const T> values() const {
     return values_;
   }
 
@@ -59,8 +59,8 @@ class tree_node {
 
  private:
   size_t index_ = no_index;
-  value_type splitter_;
-  std::vector<value_type> values_;
+  T splitter_;
+  std::vector<T> values_;
   std::unique_ptr<tree_node> left_;
   std::unique_ptr<tree_node> right_;
 };
