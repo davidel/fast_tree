@@ -31,16 +31,17 @@ double split_error(span<const T> data, size_t index, span<const S> sumvec) {
   T right_mean = static_cast<T>((sumvec.back() - sumvec[index - 1]) / n_right);
   double left_error = span_error(data.subspan(0, index), left_mean);
   double right_error = span_error(data.subspan(index), right_mean);
+  double left_weight = static_cast<double>(index) / static_cast<double>(data.size());
 
-  return left_error + right_error;
+  return left_error * left_weight + right_error * (1.0 - left_weight);
 }
 
 }
 
 template <typename T>
-std::function<std::optional<split_result<T>> (span<const T>)>
+std::function<std::optional<split_result> (span<const T>)>
 create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
-  return [&bcfg, rndgen](span<const T> data) -> std::optional<split_result<T>> {
+  return [&bcfg, rndgen](span<const T> data) -> std::optional<split_result> {
     using accum_type = double;
 
     if (bcfg.min_leaf_size >= data.size()) {
@@ -51,7 +52,7 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
     size_t left = margin;
     size_t right = data.size() - margin;
 
-    while (left < right && (data[left] - data[0]) < bcfg.same_eps) {
+    while (left < right && std::abs(data[left] - data[0]) < bcfg.same_eps) {
       ++left;
     }
     if (left >= right) {
@@ -99,7 +100,7 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
       return std::nullopt;
     }
 
-    return split_result<T>{best_index, data[best_index], best_score};
+    return split_result{best_index, best_score};
   };
 }
 

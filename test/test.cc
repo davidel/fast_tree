@@ -207,7 +207,7 @@ TEST(BuildDataTest, API) {
 }
 
 TEST(BuildTreeNodeTest, API) {
-  static const size_t N = 20;
+  static const size_t N = 100;
   static const size_t C = 10;
   std::unique_ptr<fast_tree::data<float>> rdata = create_data<float>(N, C);
   std::shared_ptr<fast_tree::build_data<float>>
