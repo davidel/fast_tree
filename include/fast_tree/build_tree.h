@@ -48,11 +48,6 @@ build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, siz
              rnd_generator* rndgen) {
   std::vector<std::unique_ptr<tree_node<T>>> forest;
 
-  if ((bcfg.num_rows == consts::all || bcfg.num_rows >= bdata->data().num_rows()) &&
-      (bcfg.num_columns == consts::all || bcfg.num_columns >= bdata->data().num_columns())) {
-    num_trees = 1;
-  }
-
   forest.reserve(num_trees);
   for (size_t i = 0; i < num_trees; ++i) {
     std::shared_ptr<build_data<T>> current_data = bdata;

@@ -27,7 +27,7 @@ class build_tree_node {
 
   using split_fn = std::function<std::optional<split_result> (span<const T>)>;
 
-  build_tree_node(const build_config& bcfg, std::shared_ptr<fast_tree::build_data<T>> bdata,
+  build_tree_node(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata,
                   set_tree_fn setter_fn, const split_fn& splitter_fn, rnd_generator* rndgen,
                   size_t depth = 0) :
       bcfg_(bcfg),
@@ -77,10 +77,10 @@ class build_tree_node {
     } else {
       size_t split_idx = bdata_->split_indices(*best_column, *best_value);
 
-      std::shared_ptr<fast_tree::build_data<T>> left_data =
-          std::make_shared<fast_tree::build_data<T>>(*bdata_, bdata_->start(), split_idx);
-      std::shared_ptr<fast_tree::build_data<T>> right_data =
-          std::make_shared<fast_tree::build_data<T>>(*bdata_, split_idx, bdata_->end());
+      std::shared_ptr<build_data<T>> left_data =
+          std::make_shared<build_data<T>>(*bdata_, bdata_->start(), split_idx);
+      std::shared_ptr<build_data<T>> right_data =
+          std::make_shared<build_data<T>>(*bdata_, split_idx, bdata_->end());
 
       std::unique_ptr<tree_node<T>>
           node = std::make_unique<tree_node<T>>(*best_column, *best_value);
@@ -110,7 +110,7 @@ class build_tree_node {
 
  private:
   const build_config& bcfg_;
-  std::shared_ptr<fast_tree::build_data<T>> bdata_;
+  std::shared_ptr<build_data<T>> bdata_;
   set_tree_fn set_fn_;
   const split_fn& split_fn_;
   rnd_generator* rndgen_;
