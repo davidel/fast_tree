@@ -13,6 +13,23 @@
 #include "fast_tree/util.h"
 
 namespace fast_tree {
+namespace detail {
+
+template <typename T>
+std::shared_ptr<build_data<T>> generate_build_data(
+    const build_config& bcfg, const std::shared_ptr<build_data<T>>& bdata,
+    rnd_generator* rndgen) {
+  if (bcfg.num_rows != consts::all && bcfg.num_rows < bdata->data().num_rows()) {
+    std::vector<size_t>
+        row_indices = resample(bdata->data().num_rows(), bcfg.num_rows, rndgen);
+
+    return std::make_shared<build_data<T>>(bdata->data(), std::move(row_indices));
+  }
+
+  return bdata;
+}
+
+}
 
 template <typename T>
 std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
@@ -50,15 +67,8 @@ build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, siz
 
   forest.reserve(num_trees);
   for (size_t i = 0; i < num_trees; ++i) {
-    std::shared_ptr<build_data<T>> current_data = bdata;
-
-    if (bcfg.num_rows != consts::all && bcfg.num_rows < bdata->data().num_rows()) {
-      std::vector<size_t> row_indices = resample(bdata->data().num_rows(), bcfg.num_rows, rndgen);
-
-      current_data = std::make_shared<build_data<T>>(bdata->data(), std::move(row_indices));
-    }
-
-    forest.push_back(build_tree(bcfg, std::move(current_data), rndgen));
+    forest.push_back(build_tree(bcfg, detail::generate_build_data(bcfg, bdata, rndgen),
+                                rndgen));
   }
 
   return forest;
