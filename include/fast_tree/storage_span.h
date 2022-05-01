@@ -11,6 +11,8 @@ namespace fast_tree {
 template <typename T>
 class storage_span {
  public:
+  using value_type = T;
+
   storage_span() = default;
 
   storage_span(span<T> data) :

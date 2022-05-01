@@ -17,6 +17,8 @@ namespace fast_tree {
 template <typename T>
 class data {
  public:
+  using value_type = T;
+
   using cdata = storage_span<T>;
 
   explicit data(cdata target) :
@@ -32,14 +34,15 @@ class data {
   }
 
   size_t num_rows() const {
-    return columns_.empty() ? 0: columns_[0].size();
+    return target_.size();
   }
 
   cdata column(size_t i) const {
     return columns_.at(i).data();
   }
 
-  std::vector<std::remove_cv_t<T>> column_sample(size_t i, span<const size_t> indices) const {
+  std::vector<std::remove_cv_t<T>> column_sample(
+      size_t i, span<const size_t> indices) const {
     return take(columns_.at(i).data(), indices);
   }
 
@@ -50,7 +53,7 @@ class data {
 
   size_t add_column(cdata col) {
     FT_ASSERT(target_.size() == col.size())
-        << "All columns must have the same size: "
+        << "Columns must have the same size of the target: "
         << target_.size() << " != " << col.size();
 
     columns_.push_back(std::move(col));
