@@ -192,8 +192,15 @@ class threadpool {
 
 template <typename T, typename F, typename I>
 std::vector<T> map(const F& fn, I start, I end, size_t num_threads = 0) {
-  threadpool pool(num_threads > 0 ? num_threads : std::thread::hardware_concurrency());
-  detail::multi_result<T> mresult(std::distance(start, end));
+  size_t num_results = std::distance(start, end);
+
+  if (num_threads == 0) {
+    num_threads = std::thread::hardware_concurrency();
+  }
+  num_threads = std::min(num_threads, num_results);
+
+  threadpool pool(num_threads);
+  detail::multi_result<T> mresult(num_results);
   size_t i = 0;
 
   for (I it = start; it != end; ++it, ++i) {
