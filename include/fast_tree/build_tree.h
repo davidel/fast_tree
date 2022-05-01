@@ -19,14 +19,10 @@ template <typename T>
 std::shared_ptr<build_data<T>> generate_build_data(
     const build_config& bcfg, const std::shared_ptr<build_data<T>>& bdata,
     rnd_generator* rndgen) {
-  if (bcfg.num_rows != consts::all && bcfg.num_rows < bdata->data().num_rows()) {
-    std::vector<size_t>
-        row_indices = resample(bdata->data().num_rows(), bcfg.num_rows, rndgen);
+  std::vector<size_t>
+      row_indices = resample(bdata->data().num_rows(), bcfg.num_rows, rndgen);
 
-    return std::make_shared<build_data<T>>(bdata->data(), std::move(row_indices));
-  }
-
-  return bdata;
+  return std::make_shared<build_data<T>>(bdata->data(), std::move(row_indices));
 }
 
 }
