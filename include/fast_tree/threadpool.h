@@ -4,6 +4,7 @@
 #include <deque>
 #include <exception>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -57,6 +58,10 @@ class queue {
 template <typename T>
 class result {
  public:
+  result() = default;
+
+  result(result&&) = default;
+
   explicit result(T value) :
       value_(std::move(value)) {
   }
@@ -65,9 +70,11 @@ class result {
       exptr_(std::move(exptr)) {
   }
 
+  result& operator=(result&& ref) = default;
+
   T get() {
     if (exptr_ != nullptr) {
-      std::rethrow_exception(eptr_);
+      std::rethrow_exception(exptr_);
     }
 
     return std::move(*value_);
@@ -79,7 +86,56 @@ class result {
 };
 
 template <typename T>
-result<T> run(const std::function<T ()>& fn) {
+class multi_result {
+ public:
+  multi_result(size_t size) :
+      results_(size),
+      assign_tracker_(size, false) {
+  }
+
+  size_t size() const {
+    return results_.size();
+  }
+
+  T get(size_t i) {
+    return results_[i].get();
+  }
+
+  void set(size_t i, result<T> res) {
+    bool done = false;
+    {
+      std::lock_guard lg(lock_);
+
+      results_[i] = std::move(res);
+      if (!assign_tracker_[i]) {
+        assign_tracker_[i] = true;
+        ++assigned_;
+        if (assigned_ == results_.size()) {
+          done = true;
+        }
+      }
+    }
+    if (done) {
+      cv_.notify_all();
+    }
+  }
+
+  void wait() {
+    std::unique_lock ul(lock_);
+
+    cv_.wait(ul, [this]{ return assigned_ == results_.size(); });
+  }
+
+ private:
+  std::vector<result<T>> results_;
+  std::vector<bool> assign_tracker_;
+  size_t assigned_ = 0;
+  std::mutex lock_;
+  std::condition_variable cv_;
+};
+
+template <typename T, typename F>
+result<T> run(const F& fn) {
   try {
     return result<T>(fn());
   } catch (...) {
@@ -100,6 +156,13 @@ class threadpool {
           [this]() {
             run();
           }));
+    }
+  }
+
+  ~threadpool() {
+    stop();
+    for (auto& thread : threads_) {
+      thread->join();
     }
   }
 
@@ -127,10 +190,37 @@ class threadpool {
   detail::queue<thread_function> function_queue_;
 };
 
-template <typename T, typename C, typename I>
-std::vector<T> map(const std::function<T (const C&)>& fn, I first, I last,
-                   size_t num_threads) {
+template <typename T, typename F, typename I>
+std::vector<T> map(const F& fn, I start, I end, size_t num_threads = 0) {
+  threadpool pool(num_threads > 0 ? num_threads : std::thread::hardware_concurrency());
+  detail::multi_result<T> mresult(std::distance(start, end));
+  size_t i = 0;
 
+  for (I it = start; it != end; ++it, ++i) {
+    auto value = *it;
+
+    auto map_fn = [&fn, &mresult, i, value = std::move(value)]() {
+      detail::result<T> result = detail::run<T>(
+          [&fn, &value]() -> T {
+            return fn(value);
+          });
+
+      mresult.set(i, std::move(result));
+    };
+
+    pool.push_work(std::move(map_fn));
+  }
+
+  mresult.wait();
+
+  std::vector<T> results;
+
+  results.reserve(mresult.size());
+  for (size_t r = 0; r < mresult.size(); ++r) {
+    results.push_back(mresult.get(r));
+  }
+
+  return results;
 }
 
 }

@@ -13,6 +13,7 @@
 #include "fast_tree/span.h"
 #include "fast_tree/storage_span.h"
 #include "fast_tree/string_formatter.h"
+#include "fast_tree/threadpool.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
 #include "fast_tree/util.h"
@@ -262,6 +263,23 @@ TEST(BuildTreeTest, Forest) {
   std::vector<std::unique_ptr<fast_tree::tree_node<float>>>
       forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
   EXPECT_EQ(forest.size(), T);
+}
+
+TEST(ThreadPool, API) {
+  const size_t N = 200;
+  fast_tree::rnd_generator gen;
+  std::vector<float> values = fast_tree::randn<float>(N, &gen);
+
+  const float ref = 2.3;
+  std::function<float (const float&)> fn = [ref](const float& value) -> float {
+    return ref + value;
+  };
+
+  std::vector<float> results = fast_tree::map<float>(fn,  values.begin(), values.end());
+
+  for (size_t i = 0; i < values.size(); ++i) {
+    EXPECT_EQ(results[i], values[i] + ref);
+  }
 }
 
 }
