@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <vector>
-#include <thread>
 
 #include "fast_tree/column_split.h"
 #include "fast_tree/build_config.h"
@@ -70,11 +69,6 @@ build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, siz
                                   rndgen));
     }
   } else {
-    if (num_threads == 0) {
-      num_threads = std::thread::hardware_concurrency();
-    }
-    num_threads = std::min(num_threads, num_trees);
-
     std::vector<std::shared_ptr<build_data<T>>> trees_data;
 
     trees_data.reserve(num_trees);
@@ -88,7 +82,8 @@ build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, siz
       return build_tree(bcfg, tdata, rndgen);
     };
 
-    forest = map(build_fn, trees_data.begin(), trees_data.end(), num_threads);
+    forest = map(build_fn, trees_data.begin(), trees_data.end(),
+                 /*num_threads=*/ effective_num_threads(num_threads, num_trees));
   }
 
   return forest;

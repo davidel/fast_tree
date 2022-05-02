@@ -192,17 +192,19 @@ class threadpool {
   detail::queue<thread_function> function_queue_;
 };
 
+static inline size_t effective_num_threads(size_t num_threads, size_t parallelism) {
+  if (num_threads == 0) {
+    num_threads = std::thread::hardware_concurrency();
+  }
+
+  return std::min(num_threads, parallelism);
+}
+
 template <typename I, typename T, typename C>
 std::vector<T> map(const std::function<T (const C&)>& fn, I start, I end,
                    size_t num_threads = 0) {
   size_t num_results = std::distance(start, end);
-
-  if (num_threads == 0) {
-    num_threads = std::thread::hardware_concurrency();
-  }
-  num_threads = std::min(num_threads, num_results);
-
-  threadpool pool(num_threads);
+  threadpool pool(effective_num_threads(num_threads, num_results));
   detail::multi_result<T> mresult(num_results);
   size_t i = 0;
 
