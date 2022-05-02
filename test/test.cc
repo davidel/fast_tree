@@ -250,7 +250,7 @@ TEST(BuildTreeTest, Tree) {
 TEST(BuildTreeTest, Forest) {
   static const size_t N = 300000;
   static const size_t C = 1000;
-  static const size_t T = 5;
+  static const size_t T = 4;
   std::unique_ptr<fast_tree::data<float>> rdata = create_data<float>(N, C);
   std::shared_ptr<fast_tree::build_data<float>>
       bdata = std::make_shared<fast_tree::build_data<float>>(*rdata);

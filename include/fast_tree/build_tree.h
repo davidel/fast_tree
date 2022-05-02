@@ -2,12 +2,14 @@
 
 #include <memory>
 #include <vector>
+#include <thread>
 
 #include "fast_tree/column_split.h"
 #include "fast_tree/build_config.h"
 #include "fast_tree/build_data.h"
 #include "fast_tree/build_tree_node.h"
 #include "fast_tree/data.h"
+#include "fast_tree/threadpool.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
 #include "fast_tree/util.h"
@@ -58,13 +60,35 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
 template <typename T>
 std::vector<std::unique_ptr<tree_node<T>>>
 build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, size_t num_trees,
-             rnd_generator* rndgen) {
+             rnd_generator* rndgen, size_t num_threads = 0) {
   std::vector<std::unique_ptr<tree_node<T>>> forest;
 
-  forest.reserve(num_trees);
-  for (size_t i = 0; i < num_trees; ++i) {
-    forest.push_back(build_tree(bcfg, detail::generate_build_data(bcfg, bdata, rndgen),
-                                rndgen));
+  if (num_threads == 1) {
+    forest.reserve(num_trees);
+    for (size_t i = 0; i < num_trees; ++i) {
+      forest.push_back(build_tree(bcfg, detail::generate_build_data(bcfg, bdata, rndgen),
+                                  rndgen));
+    }
+  } else {
+    if (num_threads == 0) {
+      num_threads = std::thread::hardware_concurrency();
+    }
+    num_threads = std::min(num_threads, num_trees);
+
+    std::vector<std::shared_ptr<build_data<T>>> trees_data;
+
+    trees_data.reserve(num_trees);
+    for (size_t i = 0; i < num_trees; ++i) {
+      trees_data.push_back(detail::generate_build_data(bcfg, bdata, rndgen));
+    }
+
+    std::function<std::unique_ptr<tree_node<T>> (const std::shared_ptr<build_data<T>>&)>
+        build_fn = [&bcfg, rndgen](const std::shared_ptr<build_data<T>>& tdata)
+        -> std::unique_ptr<tree_node<T>> {
+      return build_tree(bcfg, tdata, rndgen);
+    };
+
+    forest = map(build_fn, trees_data.begin(), trees_data.end(), num_threads);
   }
 
   return forest;
