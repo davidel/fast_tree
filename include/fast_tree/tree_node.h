@@ -57,6 +57,22 @@ class tree_node {
     right_ = std::move(right_ptr);
   }
 
+  span<const T> eval(const span<const T>& row) const {
+    const tree_node* node = this;
+
+    while (!node->is_leaf()) {
+      T row_value = row.at(node->index());
+
+      if (row_value < node->splitter()) {
+        node = &left();
+      } else {
+        node = &right();
+      }
+    }
+
+    return node->values_;
+  }
+
  private:
   size_t index_ = no_index;
   T splitter_;

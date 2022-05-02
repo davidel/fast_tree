@@ -37,8 +37,33 @@ class data {
     return target_.size();
   }
 
+  std::vector<T> row(size_t i) const {
+    std::vector<T> row_values(num_rows());
+
+    for (size_t c = 0; c < num_columns(); ++c) {
+      row_values.push_back(columns_[c][i]);
+    }
+
+    return row_values;
+  }
+
+  template <typename U>
+  span<U> row(size_t i, span<U> out) const {
+    FT_ASSERT(out.size() >= num_columns())
+        << "Buffer size too small: " << out.size() << " vs. " << num_columns();
+
+    U* data = out.data();
+    size_t count = 0;
+
+    for (size_t c = 0; c < num_columns(); ++c) {
+      data[count++] = columns_[c][i];
+    }
+
+    return span<U>(data, count);
+  }
+
   cdata column(size_t i) const {
-    return columns_.at(i).data();
+    return columns_.at(i);
   }
 
   std::vector<std::remove_cv_t<T>> column_sample(

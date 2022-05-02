@@ -245,6 +245,12 @@ TEST(BuildTreeTest, Tree) {
   std::unique_ptr<fast_tree::tree_node<float>> root = fast_tree::build_tree(bcfg, bdata, &gen);
   ASSERT_NE(root, nullptr);
   EXPECT_FALSE(root->is_leaf());
+
+  std::vector<float> row = rdata->row(11);
+  fast_tree::span<const float> evres = root->eval(row);
+  EXPECT_GE(evres.size(), 1);
+
+  // EXPECT_NE(std::find(evres.begin(), evres.end(), rdata->target()[11]), evres.end());
 }
 
 TEST(BuildTreeTest, Forest) {
