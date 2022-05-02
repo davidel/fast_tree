@@ -275,7 +275,7 @@ TEST(ThreadPool, API) {
     return ref + value;
   };
 
-  std::vector<float> results = fast_tree::map<float>(fn,  values.begin(), values.end());
+  std::vector<float> results = fast_tree::map(fn, values.begin(), values.end());
 
   for (size_t i = 0; i < values.size(); ++i) {
     EXPECT_EQ(results[i], values[i] + ref);

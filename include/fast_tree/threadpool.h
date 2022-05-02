@@ -18,9 +18,11 @@ template <typename T>
 class queue {
  public:
   void stop() {
-    std::lock_guard lg(lock_);
+    {
+      std::lock_guard lg(lock_);
 
-    stopped_ = true;
+      stopped_ = true;
+    }
     cv_.notify_all();
   }
 
@@ -190,8 +192,9 @@ class threadpool {
   detail::queue<thread_function> function_queue_;
 };
 
-template <typename T, typename F, typename I>
-std::vector<T> map(const F& fn, I start, I end, size_t num_threads = 0) {
+template <typename I, typename T, typename C>
+std::vector<T> map(const std::function<T (const C&)>& fn, I start, I end,
+                   size_t num_threads = 0) {
   size_t num_results = std::distance(start, end);
 
   if (num_threads == 0) {
