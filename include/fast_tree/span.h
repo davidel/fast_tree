@@ -63,11 +63,11 @@ class span {
   span& operator=(const span& rhs) = default;
 
   iterator begin() const {
-    return data();
+    return data_;
   }
 
   iterator end() const {
-    return data() + size();
+    return data_ + size_;
   }
 
   T* data() const {
@@ -79,19 +79,19 @@ class span {
   }
 
   bool empty() const {
-    return size() == 0;
+    return size_ == 0;
   }
 
   T& front() const {
     FT_ASSERT(!empty()) << "Tring to access empty span";
 
-    return data()[0];
+    return data_[0];
   }
 
   T& back() const {
     FT_ASSERT(!empty()) << "Tring to access empty span";
 
-    return data()[size() - 1];
+    return data_[size_ - 1];
   }
 
   T& operator[](size_t i) const {
