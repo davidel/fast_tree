@@ -93,8 +93,8 @@ class data {
   }
 
  private:
-  std::vector<cdata> columns_;
   cdata target_;
+  std::vector<cdata> columns_;
 };
 
 }

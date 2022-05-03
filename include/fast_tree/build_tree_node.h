@@ -20,6 +20,11 @@ namespace fast_tree {
 
 template <typename T>
 class build_tree_node {
+  struct split_data {
+    size_t column;
+    T value;
+  };
+
  public:
   using value_type = T;
 
@@ -39,43 +44,16 @@ class build_tree_node {
   }
 
   std::vector<std::unique_ptr<build_tree_node>> split() const {
-    std::optional<split_result> best_split;
-    std::optional<size_t> best_column;
-    std::optional<T> best_value;
-
-    storage_span<T> tgt_buffer(std::vector<T>(bdata_->data().num_rows()));
-    std::vector<size_t>
-        col_samples = resample(bdata_->data().num_columns(), bcfg_.num_columns, rndgen_);
-    for (size_t c: col_samples) {
-      typename data<T>::cdata col = bdata_->data().column(c);
-      span<size_t> indices = bdata_->indices();
-
-      std::sort(indices.begin(), indices.end(),
-                [&col](size_t left, size_t right) {
-                  return col[left] < col[right];
-                });
-
-      // The sort above re-shuffled the indices stored within the build_data,
-      // which are used to fetch the target.
-      span<T> tgt = bdata_->target(tgt_buffer.data());
-      std::optional<split_result> sres = split_fn_(tgt);
-
-      if (sres && (!best_split || sres->score > best_split->score)) {
-        best_split = sres;
-        best_column = c;
-        best_value = col[indices[best_split->index]];
-      }
-    }
-
     std::vector<std::unique_ptr<build_tree_node>> leaves;
+    std::optional<split_data> sdata = compute_split();
 
-    if (!best_split) {
+    if (!sdata) {
       std::unique_ptr<tree_node<T>>
           node = std::make_unique<tree_node<T>>(bdata_->target());
 
       set_fn_(std::move(node));
     } else {
-      size_t split_idx = bdata_->split_indices(*best_column, *best_value);
+      size_t split_idx = bdata_->split_indices(sdata->column, sdata->value);
 
       std::shared_ptr<build_data<T>> left_data =
           std::make_shared<build_data<T>>(*bdata_, bdata_->start(), split_idx);
@@ -83,7 +61,7 @@ class build_tree_node {
           std::make_shared<build_data<T>>(*bdata_, split_idx, bdata_->end());
 
       std::unique_ptr<tree_node<T>>
-          node = std::make_unique<tree_node<T>>(*best_column, *best_value);
+          node = std::make_unique<tree_node<T>>(sdata->column, sdata->value);
       tree_node<T>* node_ptr = node.get();
 
       set_tree_fn left_setter = [node_ptr](std::unique_ptr<tree_node<T>> lnode) {
@@ -109,6 +87,45 @@ class build_tree_node {
   }
 
  private:
+  std::optional<split_data> compute_split() const {
+    if (bcfg_.min_leaf_size >= bdata_->size()) {
+      return std::nullopt;
+    }
+
+    std::optional<double> best_score;
+    std::optional<size_t> best_column;
+    std::optional<T> best_value;
+
+    storage_span<T> tgt_buffer(std::vector<T>(bdata_->data().num_rows()));
+    std::vector<size_t>
+        col_samples = resample(bdata_->data().num_columns(), bcfg_.num_columns, rndgen_);
+    for (size_t c: col_samples) {
+      typename data<T>::cdata col = bdata_->data().column(c);
+      span<size_t> indices = bdata_->indices();
+
+      std::sort(indices.begin(), indices.end(),
+                [&col](size_t left, size_t right) {
+                  return col[left] < col[right];
+                });
+
+      // The sort above re-shuffled the indices stored within the build_data,
+      // which are used to fetch the target.
+      span<T> tgt = bdata_->target(tgt_buffer.data());
+      std::optional<split_result> sres = split_fn_(tgt);
+
+      if (sres && (!best_score || sres->score > *best_score)) {
+        best_score = sres->score;
+        best_column = c;
+        best_value = col[indices[sres->index]];
+      }
+    }
+    if (!best_column) {
+      return std::nullopt;
+    }
+
+    return split_data{*best_column, *best_value};
+  }
+
   const build_config& bcfg_;
   std::shared_ptr<build_data<T>> bdata_;
   set_tree_fn set_fn_;

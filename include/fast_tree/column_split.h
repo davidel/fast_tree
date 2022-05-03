@@ -48,11 +48,11 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
       return std::nullopt;
     }
 
-    size_t margin = (bcfg.min_leaf_size + 1) / 2;
+    size_t margin = std::max<size_t>(bcfg.min_leaf_size / 2, 1);
     size_t left = margin;
-    size_t right = data.size() - margin;
+    size_t right = (data.size() > margin) ? data.size() - margin : 0;
 
-    while (left < right && std::abs(data[left] - data[0]) < bcfg.same_eps) {
+    while (left < right && std::abs(data[left] - data.front()) < bcfg.same_eps) {
       ++left;
     }
     if (left >= right) {
