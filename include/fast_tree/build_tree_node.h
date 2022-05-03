@@ -86,10 +86,10 @@ class build_tree_node {
           node = std::make_unique<tree_node<T>>(*best_column, *best_value);
       tree_node<T>* node_ptr = node.get();
 
-      auto left_setter = [node_ptr](std::unique_ptr<tree_node<T>> lnode) {
+      set_tree_fn left_setter = [node_ptr](std::unique_ptr<tree_node<T>> lnode) {
         node_ptr->set_left(std::move(lnode));
       };
-      auto right_setter = [node_ptr](std::unique_ptr<tree_node<T>> rnode) {
+      set_tree_fn right_setter = [node_ptr](std::unique_ptr<tree_node<T>> rnode) {
         node_ptr->set_right(std::move(rnode));
       };
 

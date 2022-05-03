@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "fast_tree/assert.h"
 #include "fast_tree/span.h"
 #include "fast_tree/types.h"
 
@@ -49,15 +50,15 @@ class tree_node {
     return *right_;
   }
 
-  void set_left(std::unique_ptr<tree_node> left_ptr) {
-    left_ = std::move(left_ptr);
+  void set_left(std::unique_ptr<tree_node> node) {
+    left_ = std::move(node);
   }
 
-  void set_right(std::unique_ptr<tree_node> right_ptr) {
-    right_ = std::move(right_ptr);
+  void set_right(std::unique_ptr<tree_node> node) {
+    right_ = std::move(node);
   }
 
-  span<const T> eval(const span<const T>& row) const {
+  span<const T> eval(span<const T> row) const {
     const tree_node* node = this;
 
     while (!node->is_leaf()) {

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <random>
 #include <string>
@@ -250,7 +251,7 @@ TEST(BuildTreeTest, Tree) {
   fast_tree::span<const float> evres = root->eval(row);
   EXPECT_GE(evres.size(), 1);
 
-  // EXPECT_NE(std::find(evres.begin(), evres.end(), rdata->target()[11]), evres.end());
+  EXPECT_NE(std::find(evres.begin(), evres.end(), rdata->target()[11]), evres.end());
 }
 
 TEST(BuildTreeTest, Forest) {

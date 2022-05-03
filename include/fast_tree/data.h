@@ -38,8 +38,12 @@ class data {
   }
 
   std::vector<T> row(size_t i) const {
-    std::vector<T> row_values(num_rows());
+    FT_ASSERT(i < num_rows())
+        << "Row " << i << " is out of range (max " << num_rows() << ")";
 
+    std::vector<T> row_values;
+
+    row_values.reserve(num_columns());
     for (size_t c = 0; c < num_columns(); ++c) {
       row_values.push_back(columns_[c][i]);
     }
@@ -49,6 +53,8 @@ class data {
 
   template <typename U>
   span<U> row(size_t i, span<U> out) const {
+    FT_ASSERT(i < num_rows())
+        << "Row " << i << " is out of range (max " << num_rows() << ")";
     FT_ASSERT(out.size() >= num_columns())
         << "Buffer size too small: " << out.size() << " vs. " << num_columns();
 

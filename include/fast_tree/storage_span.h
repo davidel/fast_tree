@@ -24,12 +24,24 @@ class storage_span {
       data_(*storage_) {
   }
 
+  storage_span(const storage_span&) = default;
+
+  storage_span(storage_span&&) = default;
+
+  storage_span& operator=(const storage_span&) = default;
+
+  storage_span& operator=(storage_span&&) = default;
+
   size_t size() const {
     return data_.size();
   }
 
   T& operator[](size_t i) const {
     return data_[i];
+  }
+
+  T& at(size_t i) const {
+    return data_.at(i);
   }
 
   span<T> data() const {

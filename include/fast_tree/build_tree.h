@@ -34,7 +34,7 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
                                          rnd_generator* rndgen) {
   std::unique_ptr<tree_node<T>> root;
 
-  auto setter = [&](std::unique_ptr<tree_node<T>> node) {
+  auto setter = [&root](std::unique_ptr<tree_node<T>> node) {
     root = std::move(node);
   };
 
