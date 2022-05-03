@@ -26,6 +26,14 @@ class tree_node {
       splitter_(splitter) {
   }
 
+  tree_node(const tree_node&) = delete;
+
+  tree_node(tree_node&&) = delete;
+
+  tree_node& operator=(const tree_node&) = delete;
+
+  tree_node& operator=(tree_node&&) = delete;
+
   bool is_leaf() const {
     return index_ == no_index;
   }
@@ -34,7 +42,7 @@ class tree_node {
     return index_;
   }
 
-  const T& splitter() const {
+  T splitter() const {
     return splitter_;
   }
 
@@ -42,12 +50,12 @@ class tree_node {
     return values_;
   }
 
-  const tree_node& left() const {
-    return *left_;
+  const tree_node* left() const {
+    return left_.get();
   }
 
-  const tree_node& right() const {
-    return *right_;
+  const tree_node* right() const {
+    return right_.get();
   }
 
   void set_left(std::unique_ptr<tree_node> node) {
@@ -65,9 +73,9 @@ class tree_node {
       T row_value = row.at(node->index());
 
       if (row_value < node->splitter()) {
-        node = &left();
+        node = node->left();
       } else {
-        node = &right();
+        node = node->right();
       }
     }
 

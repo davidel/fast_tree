@@ -247,11 +247,13 @@ TEST(BuildTreeTest, Tree) {
   ASSERT_NE(root, nullptr);
   EXPECT_FALSE(root->is_leaf());
 
-  std::vector<float> row = rdata->row(11);
-  fast_tree::span<const float> evres = root->eval(row);
-  EXPECT_GE(evres.size(), 1);
-
-  EXPECT_NE(std::find(evres.begin(), evres.end(), rdata->target()[11]), evres.end());
+  fast_tree::data<float>::cdata target = rdata->target();
+  // for (size_t r = 0; r < rdata->num_rows(); ++r) {
+  for (size_t r : {2, 4, 11, 23}) {
+    std::vector<float> row = rdata->row(r);
+    fast_tree::span<const float> evres = root->eval(row);
+    EXPECT_NE(std::find(evres.begin(), evres.end(), target[r]), evres.end());
+  }
 }
 
 TEST(BuildTreeTest, Forest) {

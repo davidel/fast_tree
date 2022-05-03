@@ -96,13 +96,13 @@ class build_tree_node {
       set_fn_(std::move(node));
 
       leaves.push_back(
-          std::make_unique<build_tree_node<T>>(bcfg_, std::move(left_data),
-                                               std::move(left_setter), split_fn_,
-                                               rndgen_, /*depth=*/ depth_ + 1));
+          std::make_unique<build_tree_node>(bcfg_, std::move(left_data),
+                                            std::move(left_setter), split_fn_,
+                                            rndgen_, /*depth=*/ depth_ + 1));
       leaves.push_back(
-          std::make_unique<build_tree_node<T>>(bcfg_, std::move(right_data),
-                                               std::move(right_setter), split_fn_,
-                                               rndgen_, /*depth=*/ depth_ + 1));
+          std::make_unique<build_tree_node>(bcfg_, std::move(right_data),
+                                            std::move(right_setter), split_fn_,
+                                            rndgen_, /*depth=*/ depth_ + 1));
     }
 
     return leaves;

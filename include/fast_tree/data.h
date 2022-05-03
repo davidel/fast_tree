@@ -37,11 +37,11 @@ class data {
     return target_.size();
   }
 
-  std::vector<T> row(size_t i) const {
+  std::vector<std::remove_cv_t<T>> row(size_t i) const {
     FT_ASSERT(i < num_rows())
         << "Row " << i << " is out of range (max " << num_rows() << ")";
 
-    std::vector<T> row_values;
+    std::vector<std::remove_cv_t<T>> row_values;
 
     row_values.reserve(num_columns());
     for (size_t c = 0; c < num_columns(); ++c) {
