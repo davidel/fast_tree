@@ -33,7 +33,7 @@ class build_tree_node {
       bcfg_(bcfg),
       bdata_(std::move(bdata)),
       set_fn_(std::move(setter_fn)),
-      split_fn_(std::move(splitter_fn)),
+      split_fn_(splitter_fn),
       rndgen_(rndgen),
       depth_(depth) {
   }
