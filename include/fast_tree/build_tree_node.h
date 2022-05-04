@@ -126,7 +126,7 @@ class build_tree_node {
       span<size_t> indices = bdata_->indices();
 
       std::sort(indices.begin(), indices.end(),
-                [&col](size_t left, size_t right) {
+                [col](size_t left, size_t right) {
                   return col[left] < col[right];
                 });
 
