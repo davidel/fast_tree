@@ -201,17 +201,16 @@ static inline size_t effective_num_threads(size_t num_threads, size_t parallelis
 }
 
 template <typename I, typename T, typename C>
-std::vector<T> map(const std::function<T (const C&)>& fn, I start, I end,
-                   size_t num_threads = 0) {
+std::vector<T> map(const std::function<T (C&)>& fn, I start, I end, size_t num_threads = 0) {
   size_t num_results = std::distance(start, end);
   threadpool pool(effective_num_threads(num_threads, num_results));
   detail::multi_result<T> mresult(num_results);
   size_t i = 0;
 
   for (I it = start; it != end; ++it, ++i) {
-    auto value = *it;
+    auto& value = *it;
 
-    auto map_fn = [&fn, &mresult, i, value = std::move(value)]() {
+    auto map_fn = [&fn, &mresult, &value, i]() {
       detail::result<T> result = detail::run<T>(
           [&fn, &value]() -> T {
             return fn(value);

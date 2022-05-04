@@ -23,17 +23,21 @@ std::vector<size_t> iota(size_t size, size_t base = 0);
 
 template<typename T>
 std::vector<T> arange(T base, T end, T step = 1) {
-  if ((end > base && step <= 0) || (base > end && step >= 0)) {
-    throw std::invalid_argument(string_formatter()
-                                << "Invalid range " << base << " ... " << end
-                                << " with step " << step);
-  }
+  FT_ASSERT(step != 0 &&
+            ((end > base && step > 0) || (base > end && step < 0)))
+      << "Invalid range " << base << " ... " << end << " with step " << step;
 
   std::vector<T> values;
 
   values.reserve(static_cast<size_t>((end - base) / step) + 1);
-  for (T val = base; val < end; val += step) {
-    values.push_back(val);
+  if (base <= end) {
+    for (T val = base; val < end; val += step) {
+      values.push_back(val);
+    }
+  } else {
+    for (T val = base; end > val; val += step) {
+      values.push_back(val);
+    }
   }
 
   return values;

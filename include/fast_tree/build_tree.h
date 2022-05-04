@@ -70,20 +70,30 @@ build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, siz
                                   rndgen));
     }
   } else {
-    std::vector<std::shared_ptr<build_data<T>>> trees_data;
+    struct tree_build_context {
+      tree_build_context(std::shared_ptr<build_data<T>> bdata, rnd_generator* rgen) :
+          bdata(std::move(bdata)),
+          rndgen((*rgen)()) {
+      }
 
-    trees_data.reserve(num_trees);
-    for (size_t i = 0; i < num_trees; ++i) {
-      trees_data.push_back(detail::generate_build_data(bcfg, bdata, rndgen));
-    }
-
-    std::function<std::unique_ptr<tree_node<T>> (const std::shared_ptr<build_data<T>>&)>
-        build_fn = [&bcfg, rndgen](const std::shared_ptr<build_data<T>>& tdata)
-        -> std::unique_ptr<tree_node<T>> {
-      return build_tree(bcfg, tdata, rndgen);
+      std::shared_ptr<build_data<T>> bdata;
+      rnd_generator rndgen;
     };
 
-    forest = map(build_fn, trees_data.begin(), trees_data.end(),
+    std::vector<tree_build_context> trees_ctxs;
+
+    trees_ctxs.reserve(num_trees);
+    for (size_t i = 0; i < num_trees; ++i) {
+      trees_ctxs.emplace_back(detail::generate_build_data(bcfg, bdata, rndgen), rndgen);
+    }
+
+    std::function<std::unique_ptr<tree_node<T>> (tree_build_context&)>
+        build_fn = [&bcfg, rndgen](tree_build_context& tctx)
+        -> std::unique_ptr<tree_node<T>> {
+      return build_tree(bcfg, tctx.bdata, &tctx.rndgen);
+    };
+
+    forest = map(build_fn, trees_ctxs.begin(), trees_ctxs.end(),
                  /*num_threads=*/ effective_num_threads(num_threads, num_trees));
   }
 
