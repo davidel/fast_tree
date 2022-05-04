@@ -40,7 +40,9 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
     root = std::move(node);
   };
 
-  typename build_tree_node<T>::split_fn splitter = create_splitter<T>(bcfg, rndgen);
+  typename build_tree_node<T>::split_fn
+      splitter = create_splitter<T>(bcfg, bdata->data().num_rows(), bdata->data().num_columns(),
+                                    rndgen);
   std::vector<std::unique_ptr<build_tree_node<T>>> queue;
 
   queue.push_back(std::make_unique<build_tree_node<T>>(

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <random>
 #include <string>
@@ -225,7 +226,7 @@ TEST(BuildTreeNodeTest, API) {
   fast_tree::build_config bcfg;
   fast_tree::rnd_generator gen;
   fast_tree::build_tree_node<float>::split_fn
-      splitter = fast_tree::create_splitter<float>(bcfg, &gen);
+      splitter = fast_tree::create_splitter<float>(bcfg, N, C, &gen);
   fast_tree::build_tree_node<float>
       btn(bcfg, std::move(bdata), std::move(setter), splitter, &gen);
 
@@ -257,7 +258,7 @@ TEST(BuildTreeTest, Tree) {
 }
 
 TEST(BuildTreeTest, Forest) {
-  static const size_t N = 300000;
+  static const size_t N = 240000;
   static const size_t C = 1000;
   static const size_t T = 4;
   std::unique_ptr<fast_tree::data<float>> rdata = create_data<float>(N, C);
@@ -266,8 +267,8 @@ TEST(BuildTreeTest, Forest) {
   fast_tree::rnd_generator gen;
   fast_tree::build_config bcfg;
 
-  bcfg.num_rows = N * 2 / 3;
-  bcfg.num_columns = C / 30;
+  bcfg.num_rows = static_cast<size_t>(0.75 * N);
+  bcfg.num_columns = static_cast<size_t>(std::sqrt(C));
 
   fast_tree::forest<float> forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
   EXPECT_EQ(forest.size(), T);

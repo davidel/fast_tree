@@ -149,4 +149,39 @@ std::vector<size_t> resample(size_t size, size_t count, G* rgen,
   return indices;
 }
 
+template<typename G>
+span<size_t> resample(span<size_t> in_indices, size_t count, G* rgen,
+                      bool with_replacement = false) {
+  span<size_t> indices;
+
+  if (count == consts::all || count >= in_indices.size()) {
+    indices = in_indices;
+  } else {
+    if (with_replacement) {
+      size_t rspace = in_indices.size() - 1;
+
+      for (size_t i = 0; i < count; ++i, --rspace) {
+        size_t ix = static_cast<size_t>((*rgen)()) % rspace;
+
+        std::swap(in_indices[i], in_indices[i + ix + 1]);
+      }
+      indices = in_indices.subspan(0, count);
+    } else {
+      size_t n = 0;
+
+      for (size_t i = 0; i < count; ++i) {
+        size_t ix = static_cast<size_t>((*rgen)()) % in_indices.size();
+
+        if (ix > n) {
+          std::swap(in_indices[n], in_indices[ix]);
+          ++n;
+        }
+      }
+      indices = in_indices.subspan(0, n);
+    }
+  }
+
+  return indices;
+}
+
 }

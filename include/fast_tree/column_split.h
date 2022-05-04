@@ -39,11 +39,25 @@ double split_error(span<const T> data, size_t index, span<const S> sumvec) {
 }
 
 template <typename T>
-std::function<std::optional<split_result> (span<const T>)>
-create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
-  return [&bcfg, rndgen](span<const T> data) -> std::optional<split_result> {
-    using accum_type = double;
+std::function<std::optional<split_result> (span<const T>, span<const T>)>
+create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
+                rnd_generator* rndgen) {
+  using accum_type = double;
 
+  struct context {
+    context(size_t num_rows, size_t num_columns) :
+        sumvec(num_rows),
+        sample_points(num_rows) {
+    }
+
+    std::vector<accum_type> sumvec;
+    std::vector<size_t> sample_points;
+  };
+
+  std::shared_ptr<context> ctx = std::make_shared<context>(num_rows, num_columns);
+
+  return [&bcfg, rndgen, ctx](span<const T> feat, span<const T> data)
+      -> std::optional<split_result> {
     if (bcfg.min_leaf_size >= data.size()) {
       return std::nullopt;
     }
@@ -52,7 +66,7 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
     size_t left = margin;
     size_t right = (data.size() > margin) ? data.size() - margin : 0;
 
-    while (left < right && std::abs(data[left] - data.front()) < bcfg.same_eps) {
+    while (left < right && std::abs(feat[left] - feat.front()) < bcfg.same_eps) {
       ++left;
     }
     if (left >= right) {
@@ -60,13 +74,15 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
     }
 
     accum_type sum = 0;
-    std::vector<accum_type> sumvec;
+    accum_type* sptr = ctx->sumvec.data();
 
-    sumvec.reserve(data.size());
+    FT_ASSERT(ctx->sumvec.size() >= data.size());
+
     for (T val : data) {
       sum += static_cast<accum_type>(val);
-      sumvec.push_back(sum);
+      *sptr++ = sum;
     }
+    span<accum_type> sumvec(ctx->sumvec.data(), sptr - ctx->sumvec.data());
     double error = detail::span_error(data, static_cast<T>(sumvec.back() / data.size()));
 
     std::optional<double> best_score;
@@ -84,10 +100,13 @@ create_splitter(const build_config& bcfg, rnd_generator* rndgen) {
 
     #else
 
-    std::vector<size_t> ccs = resample(right - left, bcfg.num_split_points, rndgen,
-                                       /*with_replacement=*/ true);
-    for (size_t x : ccs) {
-      size_t i = x + left;
+    span<size_t> sample_points(ctx->sample_points.data(), right - left);
+
+    std::iota(sample_points.begin(), sample_points.end(), left);
+
+    span<size_t> ccs = resample(sample_points, bcfg.num_split_points, rndgen,
+                                /*with_replacement=*/ true);
+    for (size_t i : ccs) {
       double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
       if (!best_score || score > *best_score) {
         best_score = score;
