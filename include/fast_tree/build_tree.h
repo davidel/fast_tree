@@ -3,11 +3,12 @@
 #include <memory>
 #include <vector>
 
-#include "fast_tree/column_split.h"
 #include "fast_tree/build_config.h"
 #include "fast_tree/build_data.h"
 #include "fast_tree/build_tree_node.h"
+#include "fast_tree/column_split.h"
 #include "fast_tree/data.h"
+#include "fast_tree/forest.h"
 #include "fast_tree/threadpool.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
@@ -58,16 +59,16 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
 }
 
 template <typename T>
-std::vector<std::unique_ptr<tree_node<T>>>
-build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, size_t num_trees,
-             rnd_generator* rndgen, size_t num_threads = 0) {
-  std::vector<std::unique_ptr<tree_node<T>>> forest;
+forest<T> build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata,
+                       size_t num_trees, rnd_generator* rndgen,
+                       size_t num_threads = 0) {
+  std::vector<std::unique_ptr<tree_node<T>>> trees;
 
   if (num_threads == 1) {
-    forest.reserve(num_trees);
+    trees.reserve(num_trees);
     for (size_t i = 0; i < num_trees; ++i) {
-      forest.push_back(build_tree(bcfg, detail::generate_build_data(bcfg, bdata, rndgen),
-                                  rndgen));
+      trees.push_back(build_tree(bcfg, detail::generate_build_data(bcfg, bdata, rndgen),
+                                 rndgen));
     }
   } else {
     struct tree_build_context {
@@ -93,11 +94,11 @@ build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, siz
       return build_tree(bcfg, tctx.bdata, &tctx.rndgen);
     };
 
-    forest = map(build_fn, trees_ctxs.begin(), trees_ctxs.end(),
-                 /*num_threads=*/ effective_num_threads(num_threads, num_trees));
+    trees = map(build_fn, trees_ctxs.begin(), trees_ctxs.end(),
+                /*num_threads=*/ effective_num_threads(num_threads, num_trees));
   }
 
-  return forest;
+  return forest<T>(std::move(trees));
 }
 
 }

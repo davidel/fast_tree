@@ -11,6 +11,7 @@
 #include "fast_tree/build_tree_node.h"
 #include "fast_tree/column_split.h"
 #include "fast_tree/data.h"
+#include "fast_tree/forest.h"
 #include "fast_tree/span.h"
 #include "fast_tree/storage_span.h"
 #include "fast_tree/string_formatter.h"
@@ -268,9 +269,12 @@ TEST(BuildTreeTest, Forest) {
   bcfg.num_rows = N * 2 / 3;
   bcfg.num_columns = C / 30;
 
-  std::vector<std::unique_ptr<fast_tree::tree_node<float>>>
-      forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
+  fast_tree::forest<float> forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
   EXPECT_EQ(forest.size(), T);
+
+  std::vector<float> row = rdata->row(N / 2);
+  std::vector<fast_tree::span<const float>> results = forest.eval(row);
+  EXPECT_EQ(results.size(), T);
 }
 
 TEST(ThreadPool, API) {
