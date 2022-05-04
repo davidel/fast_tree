@@ -110,15 +110,16 @@ std::vector<size_t> resample(size_t size, size_t count, G* rgen,
                              bool with_replacement = false) {
   std::vector<size_t> indices;
 
-  if (count == consts::all || count >= size) {
+  if (count == consts::all) {
     indices = iota(size);
   } else {
+    size_t ecount = std::min(count, size);
     bitmap mask(size, false);
 
-    indices.reserve(count);
+    indices.reserve(ecount);
     if (with_replacement) {
-      bool invert_count = count > size / 2;
-      size_t xcount = invert_count ? size - count : count;
+      bool invert_count = ecount > size / 2;
+      size_t xcount = invert_count ? size - ecount : ecount;
 
       while (xcount > 0) {
         size_t ix = static_cast<size_t>((*rgen)()) % size;
@@ -133,7 +134,7 @@ std::vector<size_t> resample(size_t size, size_t count, G* rgen,
         }
       }
     } else {
-      for (size_t i = 0; i < count; ++i) {
+      for (size_t i = 0; i < ecount; ++i) {
         size_t ix = static_cast<size_t>((*rgen)()) % size;
         mask[ix] = true;
       }
