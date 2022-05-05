@@ -139,7 +139,7 @@ class build_tree_node {
       if (sres && (!best_score || sres->score > *best_score)) {
         best_score = sres->score;
         best_column = c;
-        best_value = col[indices[sres->index]];
+        best_value = feat[sres->index];
       }
     }
     if (!best_column) {
