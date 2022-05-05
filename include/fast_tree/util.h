@@ -91,13 +91,12 @@ template<typename T, typename U>
 span<U> take(span<T> vec, span<const size_t> indices, span<U> out) {
   FT_ASSERT(indices.size() <= out.size()) << "Buffer too small";
   U* data = out.data();
-  size_t count = 0;
 
   for (size_t ix : indices) {
-    data[count++] = vec[ix];
+    *data++ = vec[ix];
   }
 
-  return span<U>(data, count);
+  return span<U>(out.data(), data - out.data());
 }
 
 template<typename T>
