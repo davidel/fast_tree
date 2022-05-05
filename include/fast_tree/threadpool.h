@@ -38,7 +38,7 @@ class queue {
   std::optional<T> pop() {
     std::unique_lock ul(lock_);
 
-    cv_.wait(ul, [this](){ return !queue_.empty() || stopped_; });
+    cv_.wait(ul, [this]() { return !queue_.empty() || stopped_; });
 
     std::optional<T> elem;
 
@@ -125,7 +125,7 @@ class multi_result {
   void wait() {
     std::unique_lock ul(lock_);
 
-    cv_.wait(ul, [this]{ return assigned_ == results_.size(); });
+    cv_.wait(ul, [this]() { return assigned_ == results_.size(); });
   }
 
  private:
