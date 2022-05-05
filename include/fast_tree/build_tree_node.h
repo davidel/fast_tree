@@ -131,8 +131,8 @@ class build_tree_node {
                 });
 
       // The sort above re-shuffled the indices stored within the build_data,
-      // which are used to fetch the target.
-      span<T> feat = take(col.data(), indices, context_->feat_buffer.data());
+      // which are used to fetch the column and the target.
+      span<T> feat = bdata_->column(c, context_->feat_buffer.data());
       span<T> tgt = bdata_->target(context_->tgt_buffer.data());
       std::optional<split_result> sres = split_fn_(feat, tgt);
 
