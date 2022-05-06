@@ -261,6 +261,10 @@ TEST(BuildTreeTest, Tree) {
 
   root->store(&ss);
   EXPECT_TRUE(!ss.str().empty());
+
+  std::unique_ptr<fast_tree::tree_node<float>>
+      lroot = fast_tree::tree_node<float>::load(ss.str());
+
 }
 
 TEST(BuildTreeTest, Forest) {
