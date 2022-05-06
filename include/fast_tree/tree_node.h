@@ -144,8 +144,8 @@ class tree_node {
     (*stream) << tree_end << "\n";
   }
 
-  static std::unique_ptr<tree_node> load(std::string_view data) {
-    std::string_view remaining = data;
+  static std::unique_ptr<tree_node> load(std::string_view* data) {
+    std::string_view remaining = *data;
     std::string_view ln = read_line(&remaining);
 
     FT_ASSERT(ln == tree_begin) << "Invalid tree open statement: " << ln;
@@ -211,26 +211,12 @@ class tree_node {
     for (auto& it : nodes) {
       FT_ASSERT(it.second == nullptr) << "Stray node left on stack for id " << it.first;
     }
+    *data = remaining;
 
     return root;
   }
 
  private:
-  static std::string_view read_line(std::string_view* data) {
-    std::string_view::size_type pos = data->find_first_of('\n');
-    std::string_view ln;
-
-    if (pos == std::string_view::npos) {
-      ln = *data;
-      *data = std::string_view();
-    } else {
-      ln = std::string_view(data->data(), pos);
-      data->remove_prefix(pos + 1);
-    }
-
-    return ln;
-  }
-
   template <typename U>
   static std::optional<U> next_value(std::string_view* ln) {
     std::string_view::size_type pos = ln->find_first_not_of(' ');

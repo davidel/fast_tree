@@ -23,6 +23,8 @@ std::vector<size_t> reduce_indices(span<const size_t> indices, const bitmap& bma
 
 std::vector<size_t> iota(size_t size, size_t base = 0);
 
+std::string_view read_line(std::string_view* data);
+
 template<typename T>
 std::vector<T> arange(T base, T end, T step = 1) {
   FT_ASSERT(step != 0 &&

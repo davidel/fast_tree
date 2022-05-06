@@ -262,9 +262,12 @@ TEST(BuildTreeTest, Tree) {
   root->store(&ss);
   EXPECT_TRUE(!ss.str().empty());
 
+  std::string svstr = ss.str();
+  std::string_view svdata(svstr);
   std::unique_ptr<fast_tree::tree_node<float>>
-      lroot = fast_tree::tree_node<float>::load(ss.str());
+      lroot = fast_tree::tree_node<float>::load(&svdata);
 
+  EXPECT_TRUE(svdata.empty());
 }
 
 TEST(BuildTreeTest, Forest) {
@@ -280,12 +283,25 @@ TEST(BuildTreeTest, Forest) {
   bcfg.num_rows = static_cast<size_t>(0.75 * N);
   bcfg.num_columns = static_cast<size_t>(std::sqrt(C));
 
-  fast_tree::forest<float> forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
-  EXPECT_EQ(forest.size(), T);
+  std::unique_ptr<fast_tree::forest<float>>
+      forest = fast_tree::build_forest(bcfg, bdata, T, &gen);
+  EXPECT_EQ(forest->size(), T);
 
   std::vector<float> row = rdata->row(N / 2);
-  std::vector<fast_tree::span<const float>> results = forest.eval(row);
+  std::vector<fast_tree::span<const float>> results = forest->eval(row);
   EXPECT_EQ(results.size(), T);
+
+  std::stringstream ss;
+
+  forest->store(&ss);
+  EXPECT_TRUE(!ss.str().empty());
+
+  std::string svstr = ss.str();
+  std::string_view svdata(svstr);
+  std::unique_ptr<fast_tree::forest<float>>
+      lforest = fast_tree::forest<float>::load(&svdata);
+
+  EXPECT_TRUE(svdata.empty());
 }
 
 TEST(ThreadPool, API) {

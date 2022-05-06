@@ -61,9 +61,9 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
 }
 
 template <typename T>
-forest<T> build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata,
-                       size_t num_trees, rnd_generator* rndgen,
-                       size_t num_threads = 0) {
+std::unique_ptr<forest<T>> build_forest(
+    const build_config& bcfg, std::shared_ptr<build_data<T>> bdata, size_t num_trees,
+    rnd_generator* rndgen, size_t num_threads = 0) {
   std::vector<std::unique_ptr<tree_node<T>>> trees;
 
   if (num_threads == 1) {
@@ -100,7 +100,7 @@ forest<T> build_forest(const build_config& bcfg, std::shared_ptr<build_data<T>> 
                 /*num_threads=*/ effective_num_threads(num_threads, num_trees));
   }
 
-  return forest<T>(std::move(trees));
+  return std::make_unique<forest<T>>(std::move(trees));
 }
 
 }

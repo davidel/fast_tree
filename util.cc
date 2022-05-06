@@ -33,4 +33,19 @@ std::vector<size_t> iota(size_t size, size_t base) {
   return indices;
 }
 
+std::string_view read_line(std::string_view* data) {
+  std::string_view::size_type pos = data->find_first_of('\n');
+  std::string_view ln;
+
+  if (pos == std::string_view::npos) {
+    ln = *data;
+    *data = std::string_view();
+  } else {
+    ln = std::string_view(data->data(), pos);
+    data->remove_prefix(pos + 1);
+  }
+
+  return ln;
+}
+
 }
