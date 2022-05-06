@@ -231,7 +231,7 @@ std::optional<U> from_chars(std::string_view vdata) {
 
   copy_buffer(vdata, buffer, sizeof(buffer));
   char* eob = buffer;
-  auto value = std::strtod(buffer, &eob);
+  auto value = std::strtold(buffer, &eob);
 
   if (eob == buffer) {
     return std::nullopt;
