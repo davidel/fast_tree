@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -255,6 +256,11 @@ TEST(BuildTreeTest, Tree) {
     fast_tree::span<const float> evres = root->eval(row);
     EXPECT_GT(evres.size(), 0);
   }
+
+  std::stringstream ss;
+
+  root->store(&ss);
+  EXPECT_TRUE(!ss.str().empty());
 }
 
 TEST(BuildTreeTest, Forest) {
