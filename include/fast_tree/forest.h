@@ -43,11 +43,11 @@ class forest {
     return results;
   }
 
-  void store(std::ostream* stream) const {
+  void store(std::ostream* stream, int precision = -1) const {
     (*stream) << forest_begin << "\n";
 
     for (auto& tree : trees_) {
-      tree->store(stream);
+      tree->store(stream, /*precision=*/ precision);
     }
 
     (*stream) << forest_end << "\n";

@@ -63,6 +63,11 @@ TEST(SpanTest, API) {
   EXPECT_EQ(wsp_arr.size(), 8);
   wsp_arr[2] = -1;
   EXPECT_EQ(array[2], -1);
+
+  std::stringstream ss;
+
+  ss << sp_arr;
+  EXPECT_GT(ss.str().size(), 0);
 }
 
 TEST(StorageSpanTest, API) {
@@ -259,7 +264,7 @@ TEST(BuildTreeTest, Tree) {
 
   std::stringstream ss;
 
-  root->store(&ss);
+  root->store(&ss, /*precision=*/ 10);
   EXPECT_TRUE(!ss.str().empty());
 
   std::string svstr = ss.str();
@@ -268,6 +273,13 @@ TEST(BuildTreeTest, Tree) {
       lroot = fast_tree::tree_node<float>::load(&svdata);
 
   EXPECT_TRUE(svdata.empty());
+
+  for (size_t r = 0; r < rdata->num_rows(); ++r) {
+    std::vector<float> row = rdata->row(r);
+    fast_tree::span<const float> evres = root->eval(row);
+    fast_tree::span<const float> levres = lroot->eval(row);
+    EXPECT_EQ(evres, levres);
+  }
 }
 
 TEST(BuildTreeTest, Forest) {
@@ -293,7 +305,7 @@ TEST(BuildTreeTest, Forest) {
 
   std::stringstream ss;
 
-  forest->store(&ss);
+  forest->store(&ss, /*precision=*/ 10);
   EXPECT_TRUE(!ss.str().empty());
 
   std::string svstr = ss.str();
@@ -302,6 +314,12 @@ TEST(BuildTreeTest, Forest) {
       lforest = fast_tree::forest<float>::load(&svdata);
 
   EXPECT_TRUE(svdata.empty());
+  for (size_t r = 0; r < rdata->num_rows(); ++r) {
+    std::vector<float> row = rdata->row(r);
+    std::vector<fast_tree::span<const float>> evres = forest->eval(row);
+    std::vector<fast_tree::span<const float>> levres = lforest->eval(row);
+    EXPECT_EQ(evres, levres);
+  }
 }
 
 TEST(ThreadPool, API) {

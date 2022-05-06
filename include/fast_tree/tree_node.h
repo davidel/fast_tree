@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -91,7 +92,7 @@ class tree_node {
     return node->values_;
   }
 
-  void store(std::ostream* stream) const {
+  void store(std::ostream* stream, int precision = -1) const {
     struct entry {
       entry(const tree_node* node, size_t parent_idx) :
           node(node),
@@ -117,6 +118,10 @@ class tree_node {
         stack[ent->parent_idx]->right_idx = stack.size();
         stack.emplace_back(std::make_unique<entry>(ent->node->right(), stack.size()));
       }
+    }
+
+    if (precision >= 0) {
+      (*stream) << std::setprecision(precision);
     }
 
     (*stream) << tree_begin << "\n";

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <array>
 #include <vector>
 
@@ -133,6 +134,17 @@ class span {
     }
 
     return span(data_ + pos, size);
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const span& sp) {
+    for (size_t i = 0; i < sp.size(); ++i) {
+      if (i > 0) {
+        os << ", ";
+      }
+      os << sp[i];
+    }
+
+    return os;
   }
 
  private:
