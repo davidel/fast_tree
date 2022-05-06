@@ -205,9 +205,9 @@ TEST(BuildDataTest, API) {
   EXPECT_EQ(sbdata->column(5).size(), C);
   EXPECT_EQ(sbdata->target().size(), C);
 
-  size_t split = bdata->split_indices(4, 0.5);
+  size_t part_idx = bdata->partition_indices(4, 0.5);
 
-  EXPECT_GT(split, 0);
+  EXPECT_GT(part_idx, 0);
 }
 
 TEST(BuildTreeNodeTest, API) {

@@ -78,7 +78,7 @@ class build_data {
     return data_.column_sample(i, indices(), out);
   }
 
-  size_t split_indices(size_t i, T split_value) {
+  size_t partition_indices(size_t i, T pivot) {
     typename fast_tree::data<T>::cdata col = data_.column(i);
     span<size_t> idx = indices();
     size_t pos = 0;
@@ -87,7 +87,7 @@ class build_data {
     while (pos + 1 < top) {
       size_t x = idx[pos];
 
-      if (col[x] < split_value) {
+      if (col[x] < pivot) {
         ++pos;
       } else {
         std::swap(idx[pos], idx[top - 1]);

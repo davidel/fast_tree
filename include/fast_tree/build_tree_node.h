@@ -78,12 +78,12 @@ class build_tree_node {
 
       set_fn_(std::move(node));
     } else {
-      size_t split_idx = bdata_->split_indices(sdata->column, sdata->value);
+      size_t part_idx = bdata_->partition_indices(sdata->column, sdata->value);
 
       std::shared_ptr<build_data<T>> left_data =
-          std::make_shared<build_data<T>>(*bdata_, bdata_->start(), split_idx);
+          std::make_shared<build_data<T>>(*bdata_, bdata_->start(), part_idx);
       std::shared_ptr<build_data<T>> right_data =
-          std::make_shared<build_data<T>>(*bdata_, split_idx, bdata_->end());
+          std::make_shared<build_data<T>>(*bdata_, part_idx, bdata_->end());
 
       std::unique_ptr<tree_node<T>>
           node = std::make_unique<tree_node<T>>(sdata->column, sdata->value);
