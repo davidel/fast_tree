@@ -94,6 +94,24 @@ class span {
     return data_[size_ - 1];
   }
 
+  bool operator==(const span& rhs) const {
+    if (size_ != rhs.size_) {
+      return false;
+    }
+
+    for (size_t i = 0; i < size_; ++i) {
+      if (data_[i] != rhs.data_[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool operator!=(const span& rhs) const {
+    return !operator==(rhs);
+  }
+
   T& operator[](size_t i) const {
     return data_[i];
   }
