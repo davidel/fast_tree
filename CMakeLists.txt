@@ -35,12 +35,13 @@ target_include_directories(fast_tree PUBLIC
 )
 
 
-find_package(Python3 COMPONENTS Development)
+find_package(Python3 COMPONENTS Development Interpreter)
+find_package(pybind11 CONFIG)
 
 file(GLOB PY_FAST_TREE_HEADERS "python/*.h")
 file(GLOB PY_FAST_TREE_SOURCES "python/*.cc")
 
-add_library(py_fast_tree SHARED
+pybind11_add_module(py_fast_tree MODULE
   ${PY_FAST_TREE_HEADERS}
   ${PY_FAST_TREE_SOURCES}
 )
