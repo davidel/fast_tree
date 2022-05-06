@@ -95,29 +95,27 @@ class tree_node {
 
   void store(std::ostream* stream, int precision = -1) const {
     struct entry {
-      entry(const tree_node* node, size_t parent_idx) :
-          node(node),
-          parent_idx(parent_idx) {
+      explicit entry(const tree_node* node) :
+          node(node) {
       }
 
       const tree_node* node = nullptr;
-      size_t parent_idx = consts::invalid_index;
       size_t left_idx = consts::invalid_index;;
       size_t right_idx = consts::invalid_index;
     };
 
     std::vector<std::unique_ptr<entry>> stack;
 
-    stack.emplace_back(std::make_unique<entry>(this, 0));
+    stack.emplace_back(std::make_unique<entry>(this));
     for (size_t rindex = 0; stack.size() > rindex; ++rindex) {
       entry* ent = stack[rindex].get();
 
       if (!ent->node->is_leaf()) {
-        stack[ent->parent_idx]->left_idx = stack.size();
-        stack.emplace_back(std::make_unique<entry>(ent->node->left(), stack.size()));
+        stack[rindex]->left_idx = stack.size();
+        stack.emplace_back(std::make_unique<entry>(ent->node->left()));
 
-        stack[ent->parent_idx]->right_idx = stack.size();
-        stack.emplace_back(std::make_unique<entry>(ent->node->right(), stack.size()));
+        stack[rindex]->right_idx = stack.size();
+        stack.emplace_back(std::make_unique<entry>(ent->node->right()));
       }
     }
 
@@ -209,11 +207,14 @@ class tree_node {
     FT_ASSERT(ln == tree_end)
         << "Unbale to find tree end statement (\"" << tree_end << "\")";
 
-    auto rit = nodes.find(root_id);
-    FT_ASSERT(rit != nodes.end()) << "Missing root index node " << root_id;
+    std::unique_ptr<tree_node> root;
 
-    std::unique_ptr<tree_node> root = std::move(rit->second);
+    if (root_id != invalid_id) {
+      auto rit = nodes.find(root_id);
+      FT_ASSERT(rit != nodes.end()) << "Missing root index node " << root_id;
 
+      root = std::move(rit->second);
+    }
     for (auto& it : nodes) {
       FT_ASSERT(it.second == nullptr) << "Stray node left on stack for id " << it.first;
     }
