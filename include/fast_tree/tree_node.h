@@ -233,9 +233,6 @@ class tree_node {
     }
     if (pos > 0) {
       ln->remove_prefix(pos);
-      if (ln->empty()) {
-        return std::nullopt;
-      }
     }
 
     std::string_view::size_type vpos = ln->find_first_of(' ');
