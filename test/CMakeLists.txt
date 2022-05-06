@@ -21,8 +21,8 @@ set_target_properties(fast_tree_test PROPERTIES
   LINKER_LANGUAGE CXX
 )
 
-target_link_libraries(fast_tree_test
-  PUBLIC fast_tree
+target_link_libraries(fast_tree_test PUBLIC
+  fast_tree
   gtest_main
   pthread
 )
