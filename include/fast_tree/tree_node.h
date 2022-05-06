@@ -18,10 +18,11 @@ namespace fast_tree {
 
 template <typename T>
 class tree_node {
+  using id_type = std::ptrdiff_t;
+
   static constexpr std::string_view tree_begin = std::string_view("TREE BEGIN");
   static constexpr std::string_view tree_end = std::string_view("TREE END");
-
-  using id_type = std::ptrdiff_t;
+  static constexpr id_type invalid_id = -1;
 
  public:
   using value_type = T;
@@ -133,7 +134,7 @@ class tree_node {
         FT_ASSERT(ent.left_idx == consts::invalid_index) << ent.left_idx;
         FT_ASSERT(ent.right_idx == consts::invalid_index) << ent.right_idx;
 
-        (*stream) << " -1 -1";
+        (*stream) << " " << invalid_id << " " << invalid_id;
         for (T value : ent.node->values()) {
           (*stream) << " " << value;
         }
@@ -156,7 +157,7 @@ class tree_node {
     FT_ASSERT(ln == tree_begin) << "Invalid tree open statement: " << ln;
 
     std::map<id_type, std::unique_ptr<tree_node>> nodes;
-    id_type root_id = -1;
+    id_type root_id = invalid_id;
 
     while (!remaining.empty()) {
       ln = read_line(&remaining);
@@ -169,8 +170,8 @@ class tree_node {
       id_type left_idx = get_next_value<id_type>(&wln);
       id_type right_idx = get_next_value<id_type>(&wln);
 
-      if (left_idx < 0) {
-        FT_ASSERT(right_idx < 0)
+      if (left_idx == invalid_id) {
+        FT_ASSERT(right_idx == invalid_id)
             << "Node should be leaf while right index is " << right_idx;
 
         std::vector<T> values;

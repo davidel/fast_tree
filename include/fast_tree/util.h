@@ -6,6 +6,7 @@
 #include <optional>
 #include <random>
 #include <stdexcept>
+#include <sstream>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -237,6 +238,16 @@ std::optional<U> from_chars(std::string_view vdata) {
   }
 
   return static_cast<U>(value);
+}
+
+// User defined for non standard types.
+template <typename S>
+std::optional<S> from_string_view(std::string_view);
+
+template<class U,
+         typename std::enable_if<!std::is_arithmetic<U>::value>::type* = nullptr>
+std::optional<U> from_chars(std::string_view vdata) {
+  return from_string_view<U>(vdata);
 }
 
 }
