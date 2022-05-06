@@ -1,16 +1,18 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdlib>
 #include <numeric>
+#include <optional>
 #include <random>
 #include <stdexcept>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
 #include "fast_tree/assert.h"
 #include "fast_tree/constants.h"
 #include "fast_tree/span.h"
-#include "fast_tree/string_formatter.h"
 #include "fast_tree/types.h"
 
 namespace fast_tree {
@@ -181,6 +183,58 @@ span<size_t> resample(span<size_t> in_indices, size_t count, G* rgen,
   }
 
   return indices;
+}
+
+static inline void copy_buffer(std::string_view vdata, char* buffer, size_t size) {
+  FT_ASSERT(vdata.size() < size)
+      << "String size too big for destination buffer: "
+      << vdata.size() << " vs. " << size;
+
+  // std::memcpy() is slower than this code for small buffers (we are usually
+  // copying an handfull of bytes here) as it does a bunch of check on entry
+  // to figure out if it can use xmm copies.
+  const char* dptr = vdata.data();
+  const char* dend = dptr + vdata.size();
+  char* ptr = buffer;
+
+  while (dptr < dend) {
+    *ptr++ = *dptr++;
+  }
+  *ptr = '\0';
+}
+
+template<typename U,
+         typename std::enable_if<std::is_integral<U>::value>::type* = nullptr>
+std::optional<U> from_chars(std::string_view vdata) {
+  // std::from_chars() is not fully implemented in clang.
+  char buffer[128];
+
+  copy_buffer(vdata, buffer, sizeof(buffer));
+  char* eob = buffer;
+  auto value = std::strtoll(buffer, &eob, 10);
+
+  if (eob == buffer) {
+    return std::nullopt;
+  }
+
+  return static_cast<U>(value);
+}
+
+template<class U,
+         typename std::enable_if<std::is_floating_point<U>::value>::type* = nullptr>
+std::optional<U> from_chars(std::string_view vdata) {
+  // std::from_chars() is not fully implemented in clang.
+  char buffer[128];
+
+  copy_buffer(vdata, buffer, sizeof(buffer));
+  char* eob = buffer;
+  auto value = std::strtod(buffer, &eob);
+
+  if (eob == buffer) {
+    return std::nullopt;
+  }
+
+  return static_cast<U>(value);
 }
 
 }

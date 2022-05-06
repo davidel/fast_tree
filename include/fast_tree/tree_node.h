@@ -1,18 +1,17 @@
 #pragma once
 
-#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <optional>
 #include <string_view>
-#include <type_traits>
 #include <vector>
 
 #include "fast_tree/assert.h"
 #include "fast_tree/constants.h"
 #include "fast_tree/span.h"
 #include "fast_tree/types.h"
+#include "fast_tree/util.h"
 
 namespace fast_tree {
 
@@ -230,56 +229,6 @@ class tree_node {
     }
 
     return ln;
-  }
-
-  static void copy_buffer(std::string_view vdata, char* buffer, size_t size) {
-    FT_ASSERT(vdata.size() < size) << "Value string size too big: " << vdata.size();
-
-    // std::memcpy() is slower than this code for small buffers (we are usually
-    // copying an handfull of bytes here) as it does a bunch of check on entry
-    // to figure out if it can use xmm copies.
-    const char* dptr = vdata.data();
-    const char* dend = dptr + vdata.size();
-    char* ptr = buffer;
-
-    while (dptr < dend) {
-      *ptr++ = *dptr++;
-    }
-    *ptr = '\0';
-  }
-
-  template<typename U,
-           typename std::enable_if<std::is_integral<U>::value>::type* = nullptr>
-  static std::optional<U> from_chars(std::string_view vdata) {
-    // std::from_chars() is not fully implemented in clang.
-    char buffer[128];
-
-    copy_buffer(vdata, buffer, sizeof(buffer));
-    char* eob = buffer;
-    auto value = std::strtoll(buffer, &eob, 10);
-
-    if (eob == buffer) {
-      return std::nullopt;
-    }
-
-    return static_cast<U>(value);
-  }
-
-  template<class U,
-           typename std::enable_if<std::is_floating_point<U>::value>::type* = nullptr>
-  static std::optional<U> from_chars(std::string_view vdata) {
-    // std::from_chars() is not fully implemented in clang.
-    char buffer[128];
-
-    copy_buffer(vdata, buffer, sizeof(buffer));
-    char* eob = buffer;
-    auto value = std::strtod(buffer, &eob);
-
-    if (eob == buffer) {
-      return std::nullopt;
-    }
-
-    return static_cast<U>(value);
   }
 
   template <typename U>
