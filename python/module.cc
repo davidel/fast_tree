@@ -74,6 +74,14 @@ T get_partial(T size, const py::dict& opts, const char* name, T defval) {
   return value;
 }
 
+span<ft_type> array_span(const arr_type& arr) {
+  FT_ASSERT(arr.ndim() == 1) << "Input has multi-dimensional shape: " <<
+      span(arr.shape(), arr.ndim());
+
+  // We const-cast but it is safe as the forest/tree API never writer into the buffers.
+  return span<ft_type>(const_cast<ft_type*>(arr.data()), arr.size());
+}
+
 build_config get_build_config(size_t num_rows, size_t num_columns,
                               const py::dict& opts) {
   build_config bcfg;
@@ -87,15 +95,6 @@ build_config get_build_config(size_t num_rows, size_t num_columns,
 
   return bcfg;
 }
-
-span<ft_type> array_span(const arr_type& arr) {
-  FT_ASSERT(arr.ndim() == 1) << "Input has multi-dimensional shape: " <<
-      span(arr.shape(), arr.ndim());
-
-  // We const-cast but it is safe as the forest/tree API never writer into the buffers.
-  return span<ft_type>(const_cast<ft_type*>(arr.data()), arr.size());
-}
-
 
 template <typename T>
 struct py_forest {
@@ -113,7 +112,6 @@ struct py_forest {
 
   std::unique_ptr<forest<T>> forest;
 };
-
 
 std::unique_ptr<py_forest<ft_type>> create_forest(
     const std::vector<arr_type>& columns, arr_type target, size_t num_trees, py::dict opts,
