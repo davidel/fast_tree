@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <optional>
+#include <stdexcept>
+#include <vector>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
@@ -12,6 +14,7 @@
 #include "fast_tree/forest.h"
 #include "fast_tree/span.h"
 #include "fast_tree/storage_span.h"
+#include "fast_tree/string_formatter.h"
 #include "fast_tree/tree_node.h"
 #include "fast_tree/types.h"
 #include "fast_tree/util.h"
@@ -20,6 +23,10 @@ namespace py = pybind11;
 
 namespace fast_tree {
 namespace pymod {
+
+using ft_type = float;
+
+using arr_type = py::array_t<ft_type, py::array::c_style | py::array::forcecast>;
 
 template <typename T>
 std::optional<T> get_value(const py::dict& dict, const char* name) {
@@ -53,9 +60,11 @@ T get_partial(T size, const py::dict& opts, const char* name, T defval) {
   if (py::isinstance<py::int_>(opt_value)) {
     value = std::min<T>(size, opt_value.cast<int>());
   } else if (py::isinstance<py::float_>(opt_value)) {
-
-  } else {
     value = std::min<T>(size, static_cast<T>(size * opt_value.cast<float>()));
+  } else {
+    throw std::invalid_argument(
+        string_formatter() << "Invalid type for \"" << name
+        << "\" option (must be int or float)");
   }
 
   return value;
@@ -75,12 +84,19 @@ build_config get_build_config(size_t num_rows, size_t num_columns,
   return bcfg;
 }
 
-size_t create_forest(py::dict opts) {
-  // HACK!
-  size_t num_rows = 100;
-  size_t num_columns = 10;
-  build_config bcfg = get_build_config(num_rows, num_columns, opts);
+span<const ft_type> array_span(const arr_type& arr) {
+  return span<const ft_type>(static_cast<const ft_type*>(arr.data()), arr.size());
+}
 
+size_t create_forest(const std::vector<arr_type>& columns, arr_type target, py::dict opts) {
+  build_config bcfg = get_build_config(target.size(), columns.size(), opts);
+
+  std::unique_ptr<data<const ft_type>>
+      rdata = std::make_unique<data<const ft_type>>(array_span(target));
+
+  for (auto& col : columns) {
+    rdata->add_column(array_span(col));
+  }
 
   return 17;
 }
@@ -92,5 +108,7 @@ PYBIND11_MODULE(fast_tree_pylib, mod) {
 
   mod.def("create_forest",
           &fast_tree::pymod::create_forest,
+          py::arg("columns"),
+          py::arg("target"),
           py::arg("opts") = py::dict());
 }
