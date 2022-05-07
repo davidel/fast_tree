@@ -39,28 +39,28 @@ find_package(Python3 COMPONENTS Development Interpreter)
 find_package(Eigen3 CONFIG)
 find_package(pybind11 CONFIG)
 
-file(GLOB PY_FAST_TREE_HEADERS "python/*.h")
-file(GLOB PY_FAST_TREE_SOURCES "python/*.cc")
+file(GLOB FAST_TREE_PYLIB_HEADERS "python/*.h")
+file(GLOB FAST_TREE_PYLIB_SOURCES "python/*.cc")
 
-pybind11_add_module(py_fast_tree MODULE
-  ${PY_FAST_TREE_HEADERS}
-  ${PY_FAST_TREE_SOURCES}
+pybind11_add_module(fast_tree_pylib MODULE
+  ${FAST_TREE_PYLIB_HEADERS}
+  ${FAST_TREE_PYLIB_SOURCES}
 )
 
-target_include_directories(py_fast_tree PUBLIC
+target_include_directories(fast_tree_pylib PUBLIC
   ${Python3_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
 )
 
-target_link_directories(py_fast_tree PUBLIC
+target_link_directories(fast_tree_pylib PUBLIC
   ${Python3_LIB_DIRS}
 )
 
-set_target_properties(py_fast_tree PROPERTIES
+set_target_properties(fast_tree_pylib PROPERTIES
   LINKER_LANGUAGE CXX
 )
 
-target_link_libraries(py_fast_tree PUBLIC
+target_link_libraries(fast_tree_pylib PUBLIC
   fast_tree
   ${Python3_LIBRARIES}
 )

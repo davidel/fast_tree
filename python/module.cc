@@ -13,6 +13,6 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(py_fast_tree, mod) {
+PYBIND11_MODULE(fast_tree_pylib, mod) {
 
 }

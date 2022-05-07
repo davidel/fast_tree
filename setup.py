@@ -16,7 +16,7 @@ def cmake_build():
 
 
 def get_module_libs(prj_path):
-    return [os.path.basename(x) for x in glob.glob(os.path.join(prj_path, 'py_fast_tree.cpython-*.so'))]
+    return [os.path.basename(x) for x in glob.glob(os.path.join(prj_path, 'fast_tree_pylib.cpython-*.so'))]
 
 
 cmake_build()
@@ -26,7 +26,9 @@ setup(
     name='py_fast_tree',
     version=VERSION,
     packages=['py_fast_tree'],
-    package_dir={'py_fast_tree': '.'},
+    package_dir={
+        'py_fast_tree': os.path.join(PRJ_PATH, 'py_fast_tree'),
+    },
     package_data={
         'py_fast_tree': get_module_libs(PRJ_PATH),
     },
