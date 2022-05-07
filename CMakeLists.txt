@@ -36,6 +36,7 @@ target_include_directories(fast_tree PUBLIC
 
 
 find_package(Python3 COMPONENTS Development Interpreter)
+find_package(Eigen3 CONFIG)
 find_package(pybind11 CONFIG)
 
 file(GLOB PY_FAST_TREE_HEADERS "python/*.h")
@@ -48,6 +49,7 @@ pybind11_add_module(py_fast_tree MODULE
 
 target_include_directories(py_fast_tree PUBLIC
   ${Python3_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
 )
 
 target_link_directories(py_fast_tree PUBLIC
