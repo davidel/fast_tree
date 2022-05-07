@@ -24,6 +24,10 @@ class forest {
       trees_(std::move(trees)) {
   }
 
+  forest(forest&&) = default;
+
+  forest& operator=(forest&&) = default;
+
   size_t size() const {
     return trees_.size();
   }

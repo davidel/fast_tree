@@ -1,6 +1,9 @@
 #include <algorithm>
+#include <memory>
 #include <optional>
 #include <stdexcept>
+#include <sstream>
+#include <string>
 #include <vector>
 
 #include <pybind11/pybind11.h>
@@ -8,6 +11,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
+#include "fast_tree/assert.h"
 #include "fast_tree/build_config.h"
 #include "fast_tree/build_tree.h"
 #include "fast_tree/data.h"
@@ -84,31 +88,73 @@ build_config get_build_config(size_t num_rows, size_t num_columns,
   return bcfg;
 }
 
-span<const ft_type> array_span(const arr_type& arr) {
-  return span<const ft_type>(static_cast<const ft_type*>(arr.data()), arr.size());
+span<ft_type> array_span(const arr_type& arr) {
+  FT_ASSERT(arr.ndim() == 1) << "Input has multi-dimensional shape: " <<
+      span(arr.shape(), arr.ndim());
+
+  // We const-cast but it is safe as the forest/tree API never writer into the buffers.
+  return span<ft_type>(const_cast<ft_type*>(arr.data()), arr.size());
 }
 
-size_t create_forest(const std::vector<arr_type>& columns, arr_type target, py::dict opts) {
+
+template <typename T>
+struct py_forest {
+  explicit py_forest(std::unique_ptr<forest<T>> forest) :
+      forest(std::move(forest)) {
+  }
+
+  std::string str(int precision) const {
+    std::stringstream ss;
+
+    forest->store(&ss, /*precision=*/ precision);
+
+    return ss.str();
+  }
+
+  std::unique_ptr<forest<T>> forest;
+};
+
+
+std::unique_ptr<py_forest<ft_type>> create_forest(
+    const std::vector<arr_type>& columns, arr_type target, size_t num_trees, py::dict opts,
+    size_t seed, size_t num_threads) {
   build_config bcfg = get_build_config(target.size(), columns.size(), opts);
 
-  std::unique_ptr<data<const ft_type>>
-      rdata = std::make_unique<data<const ft_type>>(array_span(target));
+  std::unique_ptr<data<ft_type>>
+      rdata = std::make_unique<data<ft_type>>(array_span(target));
 
   for (auto& col : columns) {
     rdata->add_column(array_span(col));
   }
 
-  return 17;
+  std::shared_ptr<build_data<ft_type>>
+      bdata = std::make_shared<build_data<ft_type>>(*rdata);
+  rnd_generator gen(seed);
+
+  py::gil_scoped_release release;
+
+  std::unique_ptr<forest<ft_type>>
+      forest = build_forest(bcfg, bdata, num_trees, &gen, /*num_threads=*/ num_threads);
+
+  return std::make_unique<py_forest<ft_type>>(std::move(forest));
 }
 
 }
 }
 
 PYBIND11_MODULE(fast_tree_pylib, mod) {
+  using forest_type = fast_tree::pymod::py_forest<fast_tree::pymod::ft_type>;
+
+  py::class_<forest_type>(mod, "Forest")
+      .def("str", &forest_type::str,
+           py::arg("precision") = -1);
 
   mod.def("create_forest",
           &fast_tree::pymod::create_forest,
           py::arg("columns"),
           py::arg("target"),
-          py::arg("opts") = py::dict());
+          py::arg("num_trees"),
+          py::arg("opts") = py::dict(),
+          py::arg("seed") = 17,
+          py::arg("num_threads") = 0);
 }

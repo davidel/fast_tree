@@ -16,7 +16,7 @@ def cmake_build():
 
 
 def get_module_libs(prj_path):
-    return [os.path.basename(x) for x in glob.glob(os.path.join(prj_path, 'fast_tree_pylib.cpython-*.so'))]
+    return glob.glob(os.path.join(prj_path, 'fast_tree_pylib.cpython-*.so'))
 
 
 cmake_build()
