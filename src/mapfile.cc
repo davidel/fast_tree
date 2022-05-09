@@ -14,7 +14,7 @@ mapfile::mapfile(const char* path) {
   cleanup clean_file([fd = fd_]() { ::close(fd); });
 
   size_ = lseek(fd_, 0, SEEK_END);
-  lseek(fd_, 0, SEEK_SET);
+  ::lseek(fd_, 0, SEEK_SET);
 
   base_ = ::mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd_, 0);
   FT_ASSERT(base_ != MAP_FAILED) << "Failed to mmap file: " << path;
