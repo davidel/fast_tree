@@ -61,7 +61,7 @@ std::vector<T> arange(T base, T end, T step = 1) {
       values.push_back(val);
     }
   } else {
-    for (T val = base; end > val; val += step) {
+    for (T val = base; val > end; val += step) {
       values.push_back(val);
     }
   }
