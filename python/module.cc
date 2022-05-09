@@ -111,9 +111,6 @@ struct py_forest {
   }
 
   std::vector<arr_type> eval(const arr_type& data) const {
-    FT_ASSERT(data.ndim() == 2) << "Input must have two-dimensional shape: " <<
-        span(data.shape(), data.ndim());
-
     auto adata = data.unchecked<2>();
     std::vector<arr_type> result;
 
