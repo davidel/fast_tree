@@ -4,7 +4,12 @@
 #include <stdexcept>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
+
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
@@ -175,6 +180,59 @@ std::unique_ptr<py_forest<ft_type>> create_forest(
   return std::make_unique<py_forest<ft_type>>(std::move(forest));
 }
 
+std::unique_ptr<py_forest<ft_type>> load_forest(const std::string& data) {
+  std::string_view vdata(data);
+  std::unique_ptr<forest<ft_type>> forest = fast_tree::forest<ft_type>::load(&vdata);
+
+  return std::make_unique<py_forest<ft_type>>(std::move(forest));
+}
+
+
+class mapfile {
+ public:
+  explicit mapfile(const char* path) {
+    fd_ = ::open(path, O_RDONLY);
+    FT_ASSERT(fd_ != -1) << "Unable to open file: " << path;
+
+    cleanup clean_file([fd = fd_]() { ::close(fd); });
+
+    size_ = lseek(fd_, 0, SEEK_END);
+    lseek(fd_, 0, SEEK_SET);
+
+    base_ = ::mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd_, 0);
+    FT_ASSERT(base_ != MAP_FAILED) << "Failed to mmap file: " << path;
+
+    clean_file.reset();
+  }
+
+  virtual ~mapfile() {
+    if (base_ != nullptr) {
+      ::munmap(base_, size_);
+    }
+    if (fd_ != -1) {
+      ::close(fd_);
+    }
+  }
+
+  operator std::string_view() const {
+    return std::string_view(reinterpret_cast<const char*>(base_), size_);
+  }
+
+ private:
+  int fd_ = -1;
+  void* base_ = nullptr;
+  off_t size_ = 0;
+};
+
+
+std::unique_ptr<py_forest<ft_type>> load_forest_from_file(const std::string& path) {
+  mapfile mf(path.c_str());
+  std::string_view vdata(mf);
+  std::unique_ptr<forest<ft_type>> forest = fast_tree::forest<ft_type>::load(&vdata);
+
+  return std::make_unique<py_forest<ft_type>>(std::move(forest));
+}
+
 }
 }
 
@@ -195,4 +253,11 @@ PYBIND11_MODULE(fast_tree_pylib, mod) {
           py::arg("opts") = py::dict(),
           py::arg("seed") = 17,
           py::arg("num_threads") = 0);
+
+  mod.def("load_forest",
+          &fast_tree::pymod::load_forest,
+          py::arg("data"));
+  mod.def("load_forest_from_file",
+          &fast_tree::pymod::load_forest_from_file,
+          py::arg("path"));
 }
