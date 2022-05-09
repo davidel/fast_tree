@@ -59,13 +59,12 @@ class data {
         << "Buffer size too small: " << out.size() << " vs. " << num_columns();
 
     U* data = out.data();
-    size_t count = 0;
 
     for (size_t c = 0; c < num_columns(); ++c) {
-      data[count++] = columns_[c][i];
+      *data++ = columns_[c][i];
     }
 
-    return span<U>(data, count);
+    return span<U>(out.data(), data - out.data());
   }
 
   cdata column(size_t i) const {
