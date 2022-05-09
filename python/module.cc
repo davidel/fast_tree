@@ -64,7 +64,7 @@ T get_partial(T size, const py::dict& opts, const char* name, T defval) {
   if (py::isinstance<py::int_>(opt_value)) {
     value = std::min<T>(size, opt_value.cast<int>());
   } else if (py::isinstance<py::float_>(opt_value)) {
-    value = std::min<T>(size, static_cast<T>(size * opt_value.cast<float>()));
+    value = std::min<T>(size, static_cast<T>(size * opt_value.cast<double>()));
   } else {
     throw std::invalid_argument(
         string_formatter() << "Invalid type for \"" << name
@@ -78,7 +78,7 @@ span<ft_type> array_span(const arr_type& arr) {
   FT_ASSERT(arr.ndim() == 1) << "Input has multi-dimensional shape: " <<
       span(arr.shape(), arr.ndim());
 
-  // We const-cast but it is safe as the forest/tree API never writer into the buffers.
+  // We const-cast but it is safe as the forest/tree API never writes into the buffers.
   return span<ft_type>(const_cast<ft_type*>(arr.data()), arr.size());
 }
 
@@ -108,6 +108,47 @@ struct py_forest {
     forest->store(&ss, /*precision=*/ precision);
 
     return ss.str();
+  }
+
+  std::vector<arr_type> eval(const arr_type& data) const {
+    FT_ASSERT(data.ndim() == 2) << "Input must have two-dimensional shape: " <<
+        span(data.shape(), data.ndim());
+
+    auto adata = data.unchecked<2>();
+    std::vector<arr_type> result;
+
+    result.reserve(data.shape(0));
+
+    std::vector<ft_type> row(data.shape(1));
+
+    for (size_t i = 0; i < data.shape(0); ++i) {
+
+      for (size_t j = 0; j < data.shape(1); ++j) {
+        row[j] = adata(i, j);
+      }
+
+      std::vector<span<const ft_type>> rres = forest->eval(row);
+      size_t rsize = 0;
+
+      for (span<const ft_type>& s : rres) {
+        rsize += s.size();
+      }
+
+      arr_type rarr(arr_type::ShapeContainer{rsize});
+      auto ares = rarr.mutable_unchecked<1>();
+      size_t x = 0;
+
+      for (span<const ft_type>& s : rres) {
+        for (ft_type v : s) {
+          ares(x) = v;
+          ++x;
+        }
+      }
+
+      result.push_back(std::move(rarr));
+    }
+
+    return result;
   }
 
   std::unique_ptr<forest<T>> forest;
@@ -145,7 +186,9 @@ PYBIND11_MODULE(fast_tree_pylib, mod) {
 
   py::class_<forest_type>(mod, "Forest")
       .def("str", &forest_type::str,
-           py::arg("precision") = -1);
+           py::arg("precision") = -1)
+      .def("eval", &forest_type::eval,
+           py::arg("data"));
 
   mod.def("create_forest",
           &fast_tree::pymod::create_forest,
