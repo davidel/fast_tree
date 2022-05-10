@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import os
+import pickle
 import py_fast_tree as pft
 import tempfile
 import unittest
@@ -130,6 +131,39 @@ class TestForest(unittest.TestCase):
 
       for e, le in zip(*y, *ly):
         self.assertTrue(np.allclose(e, le))
+
+  def test_skl_forest(self):
+    N = 500
+    C = 10
+    T = 4
+
+    sft = pft.SklForest(
+      T,
+      max_rows=0.75,
+      max_columns=int(math.sqrt(C)) + 1,
+      seed=31455907,
+    )
+
+    X = np.random.rand(N, C).astype(np.float32)
+    y = np.sum(X, axis=1)
+
+    sft.fit(X, y)
+
+    self.assertEqual(len(sft), T)
+
+    y_ = sft.predict(X)
+
+    er = np.abs(y - y_).sum() / np.abs(y).sum()
+    self.assertLess(er, 0.1)
+
+    ps = pickle.dumps(sft)
+    psft = pickle.loads(ps)
+
+    self.assertEqual(len(sft), len(psft))
+
+    py_ = psft.predict(X)
+
+    self.assertTrue(np.allclose(y_, py_))
 
 
 if __name__ == '__main__':
