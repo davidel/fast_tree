@@ -39,13 +39,13 @@ def _gen_ramp(space, count, inverse=False, dtype=np.float32):
   return data
 
 
-def _make_forest(nrows, ncols, ntrees, opts=None):
+def _make_forest(nrows, ncols, opts=None):
   if opts is None:
     opts = dict(max_rows=0.75, max_columns=int(math.sqrt(ncols)) + 1)
 
   rd = _rand_data(nrows, ncols)
 
-  return pft.create_forest(rd.columns, rd.target, ntrees, opts=opts)
+  return pft.create_forest(rd.columns, rd.target, opts=opts)
 
 
 
@@ -56,7 +56,7 @@ class TestForest(unittest.TestCase):
     C = 10
     T = 8
 
-    ft = _make_forest(N, C, T)
+    ft = _make_forest(N, C, opts=dict(num_trees=T))
 
     self.assertEqual(len(ft), T)
 
@@ -68,9 +68,9 @@ class TestForest(unittest.TestCase):
       _gen_ramp(S, C),
     ]
     TARGET = _gen_ramp(10, 12)
-    OPTS = dict()
+    OPTS = dict(num_trees=T)
 
-    ft = pft.create_forest(COLUMNS, TARGET, T, opts=OPTS)
+    ft = pft.create_forest(COLUMNS, TARGET, opts=OPTS)
 
     for n in range(0, C):
       y = ft.eval(np.array([[n]], dtype=np.float32))
@@ -83,7 +83,7 @@ class TestForest(unittest.TestCase):
     C = 10
     T = 4
 
-    ft = _make_forest(N, C, T)
+    ft = _make_forest(N, C, opts=dict(num_trees=T))
 
     s = ft.str(precision=10)
 
@@ -94,7 +94,7 @@ class TestForest(unittest.TestCase):
     C = 10
     T = 4
 
-    ft = _make_forest(N, C, T)
+    ft = _make_forest(N, C, opts=dict(num_trees=T))
 
     s = ft.str(precision=10)
     lft = pft.load_forest(s)
@@ -113,7 +113,7 @@ class TestForest(unittest.TestCase):
     C = 10
     T = 4
 
-    ft = _make_forest(N, C, T)
+    ft = _make_forest(N, C, opts=dict(num_trees=T))
 
     with tempfile.TemporaryDirectory() as tmpdir:
       fname = os.path.join(tmpdir, 'forest.txt')

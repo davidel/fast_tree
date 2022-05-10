@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -67,6 +68,16 @@ T get_partial(T size, const py::dict& opts, const char* name, T defval) {
     value = std::min<T>(size, opt_value.cast<int>());
   } else if (py::isinstance<py::float_>(opt_value)) {
     value = std::min<T>(size, static_cast<T>(size * opt_value.cast<double>()));
+  } else if (py::isinstance<py::str>(opt_value)) {
+    std::string sval = opt_value.cast<std::string>();
+
+    if (sval == "sqrt" || sval == "auto") {
+      value = static_cast<T>(std::ceil(std::sqrt(size)));
+    } else {
+      throw std::invalid_argument(
+          string_formatter() << "Invalid mode \"" << sval << "\" for \"" << name
+          << "\" option");
+    }
   } else {
     throw std::invalid_argument(
         string_formatter() << "Invalid type for \"" << name
@@ -108,7 +119,7 @@ struct py_forest {
     return forest->size();
   }
 
-  std::string str(int precision) const {
+  std::string to_string(int precision) const {
     std::stringstream ss;
 
     forest->store(&ss, /*precision=*/ precision);
@@ -158,8 +169,11 @@ struct py_forest {
 };
 
 std::unique_ptr<py_forest<ft_type>> create_forest(
-    const std::vector<arr_type>& columns, arr_type target, size_t num_trees, py::dict opts,
-    size_t seed, size_t num_threads) {
+    const std::vector<arr_type>& columns, arr_type target, py::dict opts) {
+  size_t num_trees = get_value_or<size_t>(opts, "num_trees", 100);
+  size_t seed = get_value_or<size_t>(opts, "seed", 161862243);
+  size_t num_threads = get_value_or<size_t>(opts, "num_threads", 0);
+
   build_config bcfg = get_build_config(target.size(), columns.size(), opts);
 
   std::unique_ptr<data<ft_type>>
@@ -204,7 +218,7 @@ PYBIND11_MODULE(fast_tree_pylib, mod) {
 
   py::class_<forest_type>(mod, "Forest")
       .def("__len__", &forest_type::size)
-      .def("str", &forest_type::str,
+      .def("str", &forest_type::to_string,
            py::arg("precision") = -1)
       .def("eval", &forest_type::eval,
            py::arg("data"));
@@ -213,10 +227,7 @@ PYBIND11_MODULE(fast_tree_pylib, mod) {
           &fast_tree::pymod::create_forest,
           py::arg("columns"),
           py::arg("target"),
-          py::arg("num_trees"),
-          py::arg("opts") = py::dict(),
-          py::arg("seed") = 17,
-          py::arg("num_threads") = 0);
+          py::arg("opts") = py::dict());
 
   mod.def("load_forest",
           &fast_tree::pymod::load_forest,
