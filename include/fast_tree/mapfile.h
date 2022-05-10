@@ -1,3 +1,4 @@
+#include <sys/mman.h>
 #include <sys/types.h>
 
 #include <string_view>
@@ -18,7 +19,7 @@ class mapfile {
 
  private:
   int fd_ = -1;
-  void* base_ = nullptr;
+  void* base_ = MAP_FAILED;
   off_t size_ = 0;
 };
 

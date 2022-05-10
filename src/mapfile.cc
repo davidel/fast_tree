@@ -1,5 +1,4 @@
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <unistd.h>
 
 #include "fast_tree/mapfile.h"
@@ -23,7 +22,7 @@ mapfile::mapfile(const char* path) {
 }
 
 mapfile::~mapfile() {
-  if (base_ != nullptr) {
+  if (base_ != MAP_FAILED) {
     ::munmap(base_, size_);
   }
   if (fd_ != -1) {
