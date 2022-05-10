@@ -40,10 +40,9 @@ class SklForest(object):
     return self
 
   def predict(self, X):
-    result = np.empty((len(X),), dtype=X.dtype)
-
     evres = self._forest.eval(X)
 
+    result = np.empty((len(X),), dtype=X.dtype)
     for i, rt in enumerate(evres):
       result[i] = np.mean(rt)
 
