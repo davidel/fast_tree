@@ -140,7 +140,7 @@ class TestForest(unittest.TestCase):
     sft = pft.SklForest(
       num_trees=T,
       max_rows=0.75,
-      max_columns=int(math.sqrt(C)) + 1,
+      max_columns='sqrt',
       seed=31455907,
     )
 
