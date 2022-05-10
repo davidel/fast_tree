@@ -134,8 +134,8 @@ class TestForest(unittest.TestCase):
 
   def test_skl_forest(self):
     N = 500
-    C = 10
-    T = 4
+    C = 16
+    T = 8
 
     sft = pft.SklForest(
       num_trees=T,
