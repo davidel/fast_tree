@@ -119,7 +119,7 @@ struct py_forest {
     return forest->size();
   }
 
-  std::string to_string(int precision) const {
+  std::string dumps(int precision) const {
     std::stringstream ss;
 
     forest->store(&ss, /*precision=*/ precision);
@@ -218,7 +218,7 @@ PYBIND11_MODULE(fast_tree_pylib, mod) {
 
   py::class_<forest_type>(mod, "Forest")
       .def("__len__", &forest_type::size)
-      .def("str", &forest_type::to_string,
+      .def("dumps", &forest_type::dumps,
            py::arg("precision") = -1)
       .def("eval", &forest_type::eval,
            py::arg("data"));

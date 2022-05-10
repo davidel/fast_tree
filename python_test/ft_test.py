@@ -85,7 +85,7 @@ class TestForest(unittest.TestCase):
 
     ft = _make_forest(N, C, opts=dict(num_trees=T))
 
-    s = ft.str(precision=10)
+    s = ft.dumps(precision=10)
 
     self.assertGreater(len(s), 0)
 
@@ -96,7 +96,7 @@ class TestForest(unittest.TestCase):
 
     ft = _make_forest(N, C, opts=dict(num_trees=T))
 
-    s = ft.str(precision=10)
+    s = ft.dumps(precision=10)
     lft = pft.load_forest(s)
 
     self.assertEqual(len(lft), T)
@@ -118,7 +118,7 @@ class TestForest(unittest.TestCase):
     with tempfile.TemporaryDirectory() as tmpdir:
       fname = os.path.join(tmpdir, 'forest.txt')
       with open(fname, mode='w') as f:
-        s = ft.str(precision=10)
+        s = ft.dumps(precision=10)
         f.write(s)
 
       lft = pft.load_forest_from_file(fname)

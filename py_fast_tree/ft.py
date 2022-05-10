@@ -32,7 +32,7 @@ class SklForest(object):
     self._forest = None
 
   def _forest_str(self):
-    return self._forest.str(precision=self._args['precision'])
+    return self._forest.dumps(precision=self._args['precision'])
 
   def __len__(self):
     return len(self._forest) if self._forest is not None else 0
