@@ -6,11 +6,28 @@ import os
 import pickle
 
 
+def _create_args(iargs, **kwargs):
+  args = iargs.copy()
+  for k, v in kwargs.items():
+    if k not in args:
+      args[k] = v
+
+  return args
+
+
 class SklForest(object):
 
-  def __init__(self, num_trees, **kwargs):
-    self._num_trees = num_trees
-    self._args = kwargs.copy()
+  NUM_TREES = 100
+  PRECISION = 10
+  NUM_THREADS = 0
+  SEED = 31871551
+
+  def __init__(self, **kwargs):
+    self._args = _create_args(kwargs,
+                              num_trees=SklForest.NUM_TREES,
+                              precision=SklForest.PRECISION,
+                              seed=SklForest.SEED,
+                              num_threads=SklForest.NUM_THREADS)
     self._forest = None
 
   def __len__(self):
@@ -20,7 +37,7 @@ class SklForest(object):
     if self._forest is None:
       return None
 
-    return self._forest.str(precision=self._args.get('precision', 10))
+    return self._forest.str(precision=self._args['precision'])
 
   def fit(self, X, y):
     if X.dtype != np.float32:
@@ -32,10 +49,10 @@ class SklForest(object):
     for i in range(0, X.shape[1]):
       cols.append(X[:, i])
 
-    self._forest = pft.create_forest(cols, y, self._num_trees,
+    self._forest = pft.create_forest(cols, y, self._args['num_trees'],
                                      opts=self._args,
-                                     seed=self._args.get('seed', 31871551),
-                                     num_threads=self._args.get('num_threads', 0))
+                                     seed=self._args['seed'],
+                                     num_threads=self._args['num_threads'])
 
     return self
 

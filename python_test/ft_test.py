@@ -138,7 +138,7 @@ class TestForest(unittest.TestCase):
     T = 4
 
     sft = pft.SklForest(
-      T,
+      num_trees=T,
       max_rows=0.75,
       max_columns=int(math.sqrt(C)) + 1,
       seed=31455907,
