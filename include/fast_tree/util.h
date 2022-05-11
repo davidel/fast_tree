@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <functional>
 #include <numeric>
 #include <optional>
 #include <random>
@@ -18,26 +17,6 @@
 #include "fast_tree/types.h"
 
 namespace fast_tree {
-
-class cleanup {
- public:
-  explicit cleanup(std::function<void ()> fn) :
-      fn_(std::move(fn)) {
-  }
-
-  ~cleanup() {
-    if (fn_ != nullptr) {
-      fn_();
-    }
-  }
-
-  void reset() {
-    fn_ = nullptr;
-  }
-
- private:
-  std::function<void ()> fn_;
-};
 
 bitmap create_bitmap(size_t size, span<const size_t> indices);
 

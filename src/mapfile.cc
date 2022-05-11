@@ -1,8 +1,10 @@
+#include "fast_tree/mapfile.h"
+
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "fast_tree/mapfile.h"
-#include "fast_tree/util.h"
+#include "fast_tree/assert.h"
+#include "fast_tree/cleanup.h"
 
 namespace fast_tree {
 
