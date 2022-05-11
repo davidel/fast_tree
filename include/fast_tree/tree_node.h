@@ -18,11 +18,9 @@ namespace fast_tree {
 
 template <typename T>
 class tree_node {
-  using id_type = std::ptrdiff_t;
-
   static constexpr std::string_view tree_begin = std::string_view("TREE BEGIN");
   static constexpr std::string_view tree_end = std::string_view("TREE END");
-  static constexpr id_type invalid_id = -1;
+  static constexpr int_type invalid_id = -1;
 
  public:
   using value_type = T;
@@ -154,8 +152,8 @@ class tree_node {
 
     FT_ASSERT(ln == tree_begin) << "Invalid tree open statement: " << ln;
 
-    std::map<id_type, std::unique_ptr<tree_node>> nodes;
-    id_type root_id = invalid_id;
+    std::map<int_type, std::unique_ptr<tree_node>> nodes;
+    int_type root_id = invalid_id;
 
     while (!remaining.empty()) {
       ln = read_line(&remaining);
@@ -164,9 +162,9 @@ class tree_node {
       }
 
       std::string_view wln = ln;
-      id_type id = get_next_value<id_type>(&wln);
-      id_type left_idx = get_next_value<id_type>(&wln);
-      id_type right_idx = get_next_value<id_type>(&wln);
+      int_type id = get_next_value<int_type>(&wln);
+      int_type left_idx = get_next_value<int_type>(&wln);
+      int_type right_idx = get_next_value<int_type>(&wln);
 
       if (left_idx == invalid_id) {
         FT_ASSERT(right_idx == invalid_id)
@@ -185,7 +183,7 @@ class tree_node {
 
         nodes[id] = std::make_unique<tree_node>(std::move(values));
       } else {
-        id_type idx = get_next_value<id_type>(&wln);
+        int_type idx = get_next_value<int_type>(&wln);
         T split_value = get_next_value<T>(&wln);
 
         std::unique_ptr<tree_node> node = std::make_unique<tree_node>(idx, split_value);

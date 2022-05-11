@@ -65,7 +65,7 @@ T get_partial(T size, const py::dict& opts, const char* name, T defval) {
   auto opt_value = opts[yname];
 
   if (py::isinstance<py::int_>(opt_value)) {
-    value = std::min<T>(size, opt_value.cast<int>());
+    value = std::min<T>(size, opt_value.cast<int_type>());
   } else if (py::isinstance<py::float_>(opt_value)) {
     value = std::min<T>(size, static_cast<T>(size * opt_value.cast<double>()));
   } else if (py::isinstance<py::str>(opt_value)) {
