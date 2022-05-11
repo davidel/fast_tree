@@ -194,24 +194,24 @@ std::unique_ptr<py_forest<ft_type>> create_forest(
   py::gil_scoped_release release;
 
   std::unique_ptr<forest<ft_type>>
-      forest = build_forest(bcfg, bdata, num_trees, &gen, /*num_threads=*/ num_threads);
+      forest_ptr = build_forest(bcfg, bdata, num_trees, &gen, /*num_threads=*/ num_threads);
 
-  return std::make_unique<py_forest<ft_type>>(std::move(forest));
+  return std::make_unique<py_forest<ft_type>>(std::move(forest_ptr));
 }
 
 std::unique_ptr<py_forest<ft_type>> load_forest(const std::string& data) {
   std::string_view vdata(data);
-  std::unique_ptr<forest<ft_type>> forest = fast_tree::forest<ft_type>::load(&vdata);
+  std::unique_ptr<forest<ft_type>> forest_ptr = fast_tree::forest<ft_type>::load(&vdata);
 
-  return std::make_unique<py_forest<ft_type>>(std::move(forest));
+  return std::make_unique<py_forest<ft_type>>(std::move(forest_ptr));
 }
 
 std::unique_ptr<py_forest<ft_type>> load_forest_from_file(const std::string& path) {
   mapfile mf(path.c_str());
   std::string_view vdata(mf);
-  std::unique_ptr<forest<ft_type>> forest = fast_tree::forest<ft_type>::load(&vdata);
+  std::unique_ptr<forest<ft_type>> forest_ptr = fast_tree::forest<ft_type>::load(&vdata);
 
-  return std::make_unique<py_forest<ft_type>>(std::move(forest));
+  return std::make_unique<py_forest<ft_type>>(std::move(forest_ptr));
 }
 
 }
