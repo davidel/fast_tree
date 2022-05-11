@@ -9,7 +9,8 @@ import pickle
 def _create_args(iargs, **kwargs):
   args = iargs.copy()
   for k, v in kwargs.items():
-    if k not in args:
+    z = args.get(k, None)
+    if z is None:
       args[k] = v
 
   return args

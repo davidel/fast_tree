@@ -61,8 +61,13 @@ T get_partial(T size, const py::dict& opts, const char* name, T defval) {
     return defval;
   }
 
-  T value{};
   auto opt_value = opts[yname];
+
+  if (py::isinstance<py::none>(opt_value)) {
+    return defval;
+  }
+
+  T value{};
 
   if (py::isinstance<py::int_>(opt_value)) {
     value = std::min<T>(size, opt_value.cast<int_type>());
@@ -111,18 +116,18 @@ build_config get_build_config(size_t num_rows, size_t num_columns,
 
 template <typename T>
 struct py_forest {
-  explicit py_forest(std::unique_ptr<forest<T>> forest) :
-      forest(std::move(forest)) {
+  explicit py_forest(std::unique_ptr<forest<T>> forest_ptr) :
+      forest_ptr(std::move(forest_ptr)) {
   }
 
   size_t size() const {
-    return forest->size();
+    return forest_ptr->size();
   }
 
   std::string dumps(int precision) const {
     std::stringstream ss;
 
-    forest->store(&ss, /*precision=*/ precision);
+    forest_ptr->store(&ss, /*precision=*/ precision);
 
     return ss.str();
   }
@@ -141,7 +146,7 @@ struct py_forest {
         row[j] = adata(i, j);
       }
 
-      std::vector<span<const ft_type>> rres = forest->eval(row);
+      std::vector<span<const ft_type>> rres = forest_ptr->eval(row);
       size_t rsize = 0;
 
       for (span<const ft_type>& s : rres) {
@@ -165,7 +170,7 @@ struct py_forest {
     return result;
   }
 
-  std::unique_ptr<forest<T>> forest;
+  std::unique_ptr<forest<T>> forest_ptr;
 };
 
 std::unique_ptr<py_forest<ft_type>> create_forest(
