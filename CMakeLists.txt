@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# We need this since we are making fast_tree a static library.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 add_compile_options(
   "-O3"
   "-g"
