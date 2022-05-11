@@ -141,7 +141,6 @@ struct py_forest {
     std::vector<ft_type> row(data.shape(1));
 
     for (size_t i = 0; i < data.shape(0); ++i) {
-
       for (size_t j = 0; j < data.shape(1); ++j) {
         row[j] = adata(i, j);
       }
