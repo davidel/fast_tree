@@ -157,6 +157,15 @@ def _main(args):
   if y.ndim > 1:
     y = np.squeeze(y, axis=1)
 
+  if args.slice:
+    sbase, send = [float(x) for x in args.slice.split(',')]
+    sbase = int(len(X) * sbase)
+    send = int(len(X) * send)
+
+    X = X[sbase: send]
+    y = y[sbase: send]
+    times = times[sbase: send]
+
   _test(args, X, y, times)
 
 
@@ -167,6 +176,9 @@ if __name__ == '__main__':
                       help='The path to the input file containing the training data')
   parser.add_argument('--target_file', type=str, required=True,
                       help='The path to the input file containing the training target')
+
+  parser.add_argument('--slice', type=str,
+                      help='The BASE,END slicing for the input data')
 
   parser.add_argument('--dtype', type=str, default='float32',
                       help='The type for the input data')
