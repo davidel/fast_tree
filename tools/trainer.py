@@ -144,6 +144,17 @@ def _test(args, X, y, times):
     _write_times(args.times_file, buy_times)
 
 
+def _slice(slice_str, *args):
+  assert args
+  sbase, send = [float(x) for x in slice_str.split(',')]
+  assert sbase >= 0.0 and sbase < 1.0, f'{sbase}'
+  assert send > 0.0 and send <= 1.0, f'{send}'
+  sbase = int(len(args[0]) * sbase)
+  send = int(len(args[0]) * send)
+
+  return [arg[sbase: send] for arg in args]
+
+
 def _main(args):
   csv_args = _get_csv_args(args)
 
@@ -158,13 +169,7 @@ def _main(args):
     y = np.squeeze(y, axis=1)
 
   if args.slice:
-    sbase, send = [float(x) for x in args.slice.split(',')]
-    sbase = int(len(X) * sbase)
-    send = int(len(X) * send)
-
-    X = X[sbase: send]
-    y = y[sbase: send]
-    times = times[sbase: send]
+    X, y, times = _slice(args.slice, X, y, times)
 
   _test(args, X, y, times)
 
