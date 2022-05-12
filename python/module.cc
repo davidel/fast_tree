@@ -63,7 +63,7 @@ T get_partial(T size, const py::dict& opts, const char* name, T defval) {
 
   auto opt_value = opts[yname];
 
-  if (py::isinstance<py::none>(opt_value)) {
+  if (opt_value.is_none()) {
     return defval;
   }
 
