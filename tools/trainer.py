@@ -34,7 +34,10 @@ def _get_numeric(value):
     if re.match(r'\d+$', value):
       value = int(value)
     else:
-      value = float(value)
+      try:
+        value = float(value)
+      except:
+        pass
 
   return value
 
