@@ -154,6 +154,8 @@ def _main(args):
 
   X = Xdf.to_numpy(dtype=np.dtype(args.dtype))
   y = Ydf.to_numpy(dtype=np.dtype(args.dtype))
+  if y.ndim > 1:
+    y = np.squeeze(y, axis=1)
 
   _test(args, X, y, times)
 
