@@ -96,7 +96,7 @@ def _train_slice(X, y, times, ft_opts,
   y_test_mask = y_test > threshold
   one_match = (y_mask * y_test_mask).sum() * 100.0 / y_mask.size
   match = (y_mask == y_test_mask).sum() * 100.0 / y_mask.size
-  times_ = times[y_mask]
+  times_ = times[test_indices][y_mask]
 
   if output_file:
     with open(output_file, mode='wb') as f:
