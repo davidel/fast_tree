@@ -5,6 +5,7 @@ import pickle
 import pandas as pd
 import py_fast_tree as pft
 import re
+import time
 
 
 def _load_dataframe(path, csv_args=None):
@@ -127,13 +128,14 @@ def _test(args, X, y, times):
     if size < 1e-4:
       break
 
+    ts = time.time()
     sres = _train_slice(X, y, times, ft_opts,
                         base=base,
                         size=size,
                         gap=args.test_gap,
                         threshold=args.test_threshold)
 
-    print(f'BASE = {base:.3f}\tONEM = {sres.one_match:.2f}%\tPREC = {sres.match:.2f}%')
+    print(f'BASE = {base:.3f}\tTIME = {time.time() - ts:.3f}s\tONEM = {sres.one_match:.2f}%\tPREC = {sres.match:.2f}%')
 
     buy_times.append(sres.buy_times)
     base += size
