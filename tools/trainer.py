@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import os
+import pickle
 import pandas as pd
 import py_fast_tree as pft
 import re
@@ -52,6 +53,85 @@ def _get_forest_options(args):
     same_eps=args.same_eps)
 
 
+def _get_train_test_indices(nrows, base, size, gap=0):
+  assert base >= 0.0 and base < 1.0, f'base = {base}'
+  assert size > 0.0 and size < 1.0, f'size = {size}'
+  if base + size > 1.0:
+    base = 1.0 - size
+  ibase = int(nrows * base)
+  isize = int(nrows * size)
+
+  test_indices = np.full((nrows, ), False)
+  test_indices[ibase: ibase + isize] = True
+
+  train_indices = ~ test_indices
+
+  if gap > 0:
+    test_indices[ibase: ibase + gap] = False
+
+  return train_indices, test_indices
+
+
+def _train_slice(X, y, times, ft_opts,
+                 base=0.9,
+                 size=0.1,
+                 gap=0,
+                 threshold=0.5,
+                 output_file=None):
+  train_indices, test_indices = _get_train_test_indices(len(X), base, size, gap=gap)
+
+  X_train, y_train = X[train_indices], y[train_indices]
+  X_test, y_test = X[test_indices], y[test_indices]
+
+  sft = pft.SklForest(**ft_opts)
+
+  sft.fit(X_train, y_train)
+
+  y_ = sft.predict(X_test)
+
+  y_mask = y_ > threshold
+  y_test_mask = y_test > threshold
+  one_match = (y_mask * y_test_mask).sum() * 100.0 / y_mask.size
+  match = (y_mask == y_test_mask).sum() * 100.0 / y_mask.size
+  times_ = times[y_mask]
+
+  if output_file:
+    with open(output_file, mode='wb') as f:
+      pickle.dump(sft, f)
+
+  return pft.Obj(one_match=one_match, match=match, buy_times=times_, forest=sft)
+
+
+def _test(args, X, y, times):
+  ft_opts = _get_forest_options(args)
+
+  test_steps = args.test_steps
+  if test_steps is None:
+    test_steps = int(round((1.0 - args.test_base) / args.test_size))
+
+  buy_times = []
+
+  base = args.test_base
+  for _ in range(0, test_steps):
+    size = min(args.test_size, 1.0 - base)
+    if size < 1e-4:
+      break
+
+    sres = _train_slice(X, y, times, ft_opts,
+                        base=base,
+                        size=size,
+                        gap=args.test_gap,
+                        threshold=args.test_threshold)
+
+    print(f'BASE = {base:.2f}\tONEM = {sres.one_match:.3f}%\tPREC = {sres.match:.2f}%')
+
+    buy_times.append(sres.buy_times)
+    base += size
+
+  buy_times = np.sort(np.concatenate(buy_times))
+
+
+
 def _main(args):
   csv_args = _get_csv_args(args)
 
@@ -63,8 +143,7 @@ def _main(args):
   X = Xdf.to_numpy(dtype=np.dtype(args.dtype))
   y = Ydf.to_numpy(dtype=np.dtype(args.dtype))
 
-  ft_opts = _get_forest_options(args)
-
+  _test(args, X, y, times)
 
 
 if __name__ == '__main__':
@@ -102,6 +181,17 @@ if __name__ == '__main__':
                       help='The minimum split error improvement for a split to be considered')
   parser.add_argument('--same_eps', type=float,
                       help='The epsilon to be used to consider two values to be the same')
+
+  parser.add_argument('--test_threshold', type=float, default=0.5,
+                      help='The threshold to be used to classify buy triggers')
+  parser.add_argument('--test_base', type=float, default=0.0,
+                      help='The base of the test data (0..1)')
+  parser.add_argument('--test_size', type=float, default=0.1,
+                      help='The base of the test data (0..1)')
+  parser.add_argument('--test_steps', type=int,
+                      help='The number of test steps from --test_base with --test_size increments')
+  parser.add_argument('--test_gap', type=int, default=0,
+                      help='The number of test records to skip (at the beginning) to avoid testing on trained samples')
 
   args = parser.parse_args()
 
