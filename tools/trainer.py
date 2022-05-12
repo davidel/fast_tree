@@ -103,7 +103,10 @@ def _train_slice(X, y, times, ft_opts,
     with open(output_file, mode='wb') as f:
       pickle.dump(sft, f)
 
-  return pft.Obj(one_match=one_match, match=match, buy_times=times_, forest=sft)
+  return pft.Obj(one_match=one_match,
+                 match=match,
+                 buy_times=times_,
+                 forest=sft)
 
 
 def _write_times(times_file, buy_times):
@@ -135,7 +138,8 @@ def _test(args, X, y, times):
                         gap=args.test_gap,
                         threshold=args.test_threshold)
 
-    print(f'BASE = {base:.3f}\tTIME = {time.time() - ts:.3f}s\tONEM = {sres.one_match:.2f}%\tPREC = {sres.match:.2f}%')
+    print(f'BASE = {base:.3f}\tTIME = {time.time() - ts:.3f}s\tONEM = {sres.one_match:.2f}%' \
+          f'\tPREC = {sres.match:.2f}%\tNTRIGS = {len(sres.buy_times)}')
 
     buy_times.append(sres.buy_times)
     base += size
