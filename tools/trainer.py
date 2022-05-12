@@ -133,7 +133,7 @@ def _test(args, X, y, times):
                         gap=args.test_gap,
                         threshold=args.test_threshold)
 
-    print(f'BASE = {base:.2f}\tONEM = {sres.one_match:.3f}%\tPREC = {sres.match:.2f}%')
+    print(f'BASE = {base:.3f}\tONEM = {sres.one_match:.2f}%\tPREC = {sres.match:.2f}%')
 
     buy_times.append(sres.buy_times)
     base += size
