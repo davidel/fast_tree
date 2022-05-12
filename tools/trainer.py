@@ -102,6 +102,13 @@ def _train_slice(X, y, times, ft_opts,
   return pft.Obj(one_match=one_match, match=match, buy_times=times_, forest=sft)
 
 
+def _write_times(times_file, buy_times):
+  with open(times_file, mode='w') as tf:
+    tf.write('buy_times\n')
+    for t in buy_times:
+      tf.write(f'{t:.3f}\n')
+
+
 def _test(args, X, y, times):
   ft_opts = _get_forest_options(args)
 
@@ -130,6 +137,8 @@ def _test(args, X, y, times):
 
   buy_times = np.sort(np.concatenate(buy_times))
 
+  if args.times_file:
+    _write_times(args.times_file, buy_times)
 
 
 def _main(args):
@@ -192,6 +201,8 @@ if __name__ == '__main__':
                       help='The number of test steps from --test_base with --test_size increments')
   parser.add_argument('--test_gap', type=int, default=0,
                       help='The number of test records to skip (at the beginning) to avoid testing on trained samples')
+  parser.add_argument('--times_file', type=str,
+                      help='The path to the output times CSV file')
 
   args = parser.parse_args()
 
