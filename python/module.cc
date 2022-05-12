@@ -43,7 +43,13 @@ std::optional<T> get_value(const py::dict& dict, const char* name) {
     return std::nullopt;
   }
 
-  return dict[yname].cast<T>();
+  auto value = dict[yname];
+
+  if (value.is_none()) {
+    return std::nullopt;
+  }
+
+  return value.cast<T>();
 }
 
 template <typename T>
