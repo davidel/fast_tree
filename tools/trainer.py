@@ -52,6 +52,7 @@ def _get_forest_options(args):
     max_rows=_get_numeric(args.max_rows),
     max_columns=_get_numeric(args.max_columns),
     min_leaf_size=args.min_leaf_size,
+    max_depth=args.max_depth,
     num_split_points=args.num_split_points,
     min_split_error=args.min_split_error,
     same_eps=args.same_eps)
@@ -212,6 +213,8 @@ if __name__ == '__main__':
                       help='The maximum number of columns to be used to build each tree')
   parser.add_argument('--min_leaf_size', type=int,
                       help='The minimum number of values within a leaf')
+  parser.add_argument('--max_depth', type=int,
+                      help='The maximum depth of each tree')
   parser.add_argument('--num_split_points', type=int,
                       help='The number of random split point to use to search for the best split')
   parser.add_argument('--min_split_error', type=float,
