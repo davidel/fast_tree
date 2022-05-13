@@ -111,7 +111,7 @@ class build_tree_node {
 
  private:
   std::optional<split_data> compute_split() const {
-    if (bcfg_.min_leaf_size >= bdata_->size()) {
+    if (bcfg_.min_leaf_size >= bdata_->size() || depth_ >= bcfg_.max_depth) {
       return std::nullopt;
     }
 

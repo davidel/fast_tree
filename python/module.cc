@@ -113,6 +113,7 @@ build_config get_build_config(size_t num_rows, size_t num_columns,
   bcfg.num_rows = get_partial<size_t>(num_rows, opts, "max_rows", bcfg.num_rows);
   bcfg.num_columns = get_partial<size_t>(num_columns, opts, "max_columns", bcfg.num_columns);
   bcfg.min_leaf_size = get_value_or<size_t>(opts, "min_leaf_size", bcfg.min_leaf_size);
+  bcfg.max_depth = get_value_or<size_t>(opts, "max_depth", bcfg.max_depth);
   bcfg.num_split_points = get_value_or<size_t>(opts, "num_split_points", bcfg.num_split_points);
   bcfg.min_split_error = get_value_or<double>(opts, "min_split_error", bcfg.min_split_error);
   bcfg.same_eps = get_value_or<double>(opts, "same_eps", bcfg.same_eps);
