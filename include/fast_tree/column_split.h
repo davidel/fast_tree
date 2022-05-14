@@ -14,24 +14,28 @@ namespace fast_tree {
 namespace detail {
 
 template <typename T>
-double span_error(span<const T> data, T mean) {
-  double error = 0;
-  for (T val : data) {
-    error += static_cast<double>(std::abs(val - mean));
-  }
+double span_error(span<const T> sumvec, size_t from, size_t to) {
+  // Sum()  = Sum from 'i' to 'n'
+  // Vi     = Value at 'i'
+  // M      = Mean ... Sum(Vi) / n
+  // Error = Sum((Vi - M)^2)
+  //       = Sum(Vi^2 + M^2 - 2 * Vi * M)
+  //       = Sum(Vi^2) + n * M^2 - 2 * M * Sum(Vi)
+  //       = Sum(Vi^2) + M * (n * M - 2 * Sum(Vi))
+  //       = Sum(Vi^2) + M * (n * Sum(Vi) / n - 2 * Sum(Vi))
+  //       = Sum(Vi^2) - M * Sum(Vi)
+  double sum = static_cast<double>(sumvec[to].sum - sumvec[from].sum);
+  double sum2 = static_cast<double>(sumvec[to].sum2 - sumvec[from].sum2);
+  double mean = sum / (to - from);
 
-  return error / data.size();
+  return sum2 - mean * sum;
 }
 
-template <typename T, typename S>
-double split_error(span<const T> data, size_t index, span<const S> sumvec) {
-  size_t n_left = index;
-  size_t n_right = data.size() - index;
-  T left_mean = static_cast<T>(sumvec[index - 1] / n_left);
-  T right_mean = static_cast<T>((sumvec.back() - sumvec[index - 1]) / n_right);
-  double left_error = span_error(data.subspan(0, index), left_mean);
-  double right_error = span_error(data.subspan(index), right_mean);
-  double left_weight = static_cast<double>(index) / static_cast<double>(data.size());
+template <typename T>
+double split_error(size_t index, span<const T> sumvec) {
+  double left_error = span_error(sumvec, 0, index + 1);
+  double right_error = span_error(sumvec, index + 1, sumvec.size() - 1);
+  double left_weight = static_cast<double>(index) / static_cast<double>(sumvec.size() - 1);
 
   return left_error * left_weight + right_error * (1.0 - left_weight);
 }
@@ -44,13 +48,20 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
                 rnd_generator* rndgen) {
   using accum_type = double;
 
+  struct sum_entry {
+    using value_type = accum_type;
+
+    accum_type sum = 0.0;
+    accum_type sum2 = 0.0;
+  };
+
   struct context {
     context(size_t num_rows, size_t num_columns) :
-        sumvec(num_rows),
+        sumvec(num_rows + 1),
         sample_points(num_rows) {
     }
 
-    std::vector<accum_type> sumvec;
+    std::vector<sum_entry> sumvec;
     std::vector<size_t> sample_points;
   };
 
@@ -74,16 +85,26 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
     }
 
     accum_type sum = 0;
-    accum_type* sptr = ctx->sumvec.data();
+    accum_type sum2 = 0;
+    sum_entry* sptr = ctx->sumvec.data();
 
     FT_ASSERT(ctx->sumvec.size() >= data.size());
 
     for (T val : data) {
-      sum += static_cast<accum_type>(val);
-      *sptr++ = sum;
+      accum_type aval = static_cast<accum_type>(val);
+
+      sptr->sum = sum;
+      sptr->sum2 = sum2;
+      ++sptr;
+      sum += aval;
+      sum2 += aval * aval;
     }
-    span<accum_type> sumvec(ctx->sumvec.data(), sptr - ctx->sumvec.data());
-    double error = detail::span_error(data, static_cast<T>(sumvec.back() / data.size()));
+    sptr->sum = sum;
+    sptr->sum2 = sum2;
+    ++sptr;
+
+    span<sum_entry> sumvec(ctx->sumvec.data(), sptr - ctx->sumvec.data());
+    double error = detail::span_error<sum_entry>(sumvec, 0, data.size());
 
     std::optional<double> best_score;
     size_t best_index = 0;
@@ -91,7 +112,7 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
     #if 0
 
     for (size_t i = left; i < right; ++i) {
-      double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
+      double score = error - detail::split_error<sum_entry>(i, sumvec);
       if (!best_score || score > *best_score) {
         best_score = score;
         best_index = i;
@@ -107,7 +128,7 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
     span<size_t> ccs = resample(sample_points, bcfg.num_split_points, rndgen,
                                 /*with_replacement=*/ true);
     for (size_t i : ccs) {
-      double score = error - detail::split_error<T, accum_type>(data, i, sumvec);
+      double score = error - detail::split_error<sum_entry>(i, sumvec);
       if (!best_score || score > *best_score) {
         best_score = score;
         best_index = i;
