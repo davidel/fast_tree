@@ -33,8 +33,8 @@ double span_error(span<const T> sumvec, size_t from, size_t to) {
 
 template <typename T>
 double split_error(size_t index, span<const T> sumvec) {
-  double left_error = span_error(sumvec, 0, index + 1);
-  double right_error = span_error(sumvec, index + 1, sumvec.size() - 1);
+  double left_error = span_error(sumvec, 0, index);
+  double right_error = span_error(sumvec, index, sumvec.size() - 1);
   double left_weight = static_cast<double>(index) / static_cast<double>(sumvec.size() - 1);
 
   return left_error * left_weight + right_error * (1.0 - left_weight);
