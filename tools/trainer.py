@@ -178,6 +178,8 @@ def _main(args):
   if args.slice:
     X, y, times = _slice(args.slice, X, y, times)
 
+  print(f'{len(X)} rows, {X.shape[1]} columns, {int(len(X) * args.test_size)} test size')
+
   _test(args, X, y, times)
 
 
