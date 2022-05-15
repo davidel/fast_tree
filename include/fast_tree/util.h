@@ -95,13 +95,13 @@ std::vector<std::remove_cv_t<T>> take(span<T> vec, span<const size_t> indices) {
 template<typename T, typename U>
 span<U> take(span<T> vec, span<const size_t> indices, span<U> out) {
   FT_ASSERT(indices.size() <= out.size()) << "Buffer too small";
-  U* data = out.data();
+  U* out_ptr = out.data();
 
   for (size_t ix : indices) {
-    *data++ = vec[ix];
+    *out_ptr++ = vec[ix];
   }
 
-  return span<U>(out.data(), data - out.data());
+  return span<U>(out.data(), out_ptr - out.data());
 }
 
 template<typename T>

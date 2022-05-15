@@ -129,8 +129,8 @@ class span {
     if (size == no_size) {
       size = size_ - pos;
     } else {
-      FT_ASSERT(pos + size <= size_) << "Position " << (pos + size) << " out of range (max "
-                                     << size_ << ")";
+      FT_ASSERT(pos + size <= size_)
+          << "End position " << (pos + size) << " out of range (max " << size_ << ")";
     }
 
     return span(data_ + pos, size);

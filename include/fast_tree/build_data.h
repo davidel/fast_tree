@@ -84,7 +84,7 @@ class build_data {
     size_t pos = 0;
     size_t top = idx.size();
 
-    while (pos + 1 < top) {
+    while (pos < top) {
       size_t x = idx[pos];
 
       if (col[x] < pivot) {

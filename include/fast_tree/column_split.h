@@ -28,7 +28,9 @@ double span_error(span<const T> sumvec, size_t from, size_t to) {
   typename T::value_type sum2 = sumvec[to].sum2 - sumvec[from].sum2;
   typename T::value_type mean = sum / (to - from);
 
-  return static_cast<double>(sum2 - mean * sum);
+  // Var(Vi) = Sum((Vi - M)^2) / n
+  //         = Sum(Vi^2) / n - M^2
+  return static_cast<double>(sum2 / (to - from) - mean * mean);
 }
 
 template <typename T>
@@ -79,7 +81,7 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
     size_t left = margin;
     size_t right = (data.size() > margin) ? data.size() - margin : 0;
 
-    while (left < right && std::abs(feat[left] - feat.front()) < bcfg.same_eps) {
+    while (left < right && (feat[left] - feat.front()) < bcfg.same_eps) {
       ++left;
     }
     if (left >= right) {
