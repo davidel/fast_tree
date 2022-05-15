@@ -24,11 +24,11 @@ double span_error(span<const T> sumvec, size_t from, size_t to) {
   //       = Sum(Vi^2) + M * (n * M - 2 * Sum(Vi))
   //       = Sum(Vi^2) + M * (n * Sum(Vi) / n - 2 * Sum(Vi))
   //       = Sum(Vi^2) - M * Sum(Vi)
-  double sum = static_cast<double>(sumvec[to].sum - sumvec[from].sum);
-  double sum2 = static_cast<double>(sumvec[to].sum2 - sumvec[from].sum2);
-  double mean = sum / (to - from);
+  typename T::value_type sum = sumvec[to].sum - sumvec[from].sum;
+  typename T::value_type sum2 = sumvec[to].sum2 - sumvec[from].sum2;
+  typename T::value_type mean = sum / (to - from);
 
-  return sum2 - mean * sum;
+  return static_cast<double>(sum2 - mean * sum);
 }
 
 template <typename T>
@@ -69,6 +69,8 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
 
   return [&bcfg, rndgen, ctx](span<const T> feat, span<const T> data)
       -> std::optional<split_result> {
+    FT_ASSERT(ctx->sumvec.size() >= data.size());
+
     if (bcfg.min_leaf_size >= data.size()) {
       return std::nullopt;
     }
@@ -88,8 +90,6 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
     accum_type sum2 = 0;
     sum_entry* sptr = ctx->sumvec.data();
 
-    FT_ASSERT(ctx->sumvec.size() >= data.size());
-
     for (T val : data) {
       accum_type aval = static_cast<accum_type>(val);
 
@@ -104,7 +104,7 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
     ++sptr;
 
     span<sum_entry> sumvec(ctx->sumvec.data(), sptr - ctx->sumvec.data());
-    double error = detail::span_error<sum_entry>(sumvec, 0, data.size());
+    double error = detail::span_error<sum_entry>(sumvec, 0, sumvec.size() - 1);
 
     std::optional<double> best_score;
     size_t best_index = 0;
