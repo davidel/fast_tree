@@ -77,7 +77,7 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
       return std::nullopt;
     }
 
-    size_t margin = std::max<size_t>(bcfg.min_leaf_size / 2, 1);
+    size_t margin = bcfg.min_leaf_size / 2;
     size_t left = margin;
     size_t right = (data.size() > margin) ? data.size() - margin : 0;
 
