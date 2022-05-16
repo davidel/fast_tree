@@ -90,55 +90,50 @@ create_splitter(const build_config& bcfg, size_t num_rows, size_t num_columns,
 
     accum_type sum = 0;
     accum_type sum2 = 0;
-    sum_entry* sptr = ctx->sumvec.data();
+    sum_entry* sumvec_ptr = ctx->sumvec.data();
 
     for (T val : data) {
       accum_type aval = static_cast<accum_type>(val);
 
-      sptr->sum = sum;
-      sptr->sum2 = sum2;
-      ++sptr;
+      sumvec_ptr->sum = sum;
+      sumvec_ptr->sum2 = sum2;
+      ++sumvec_ptr;
       sum += aval;
       sum2 += aval * aval;
     }
-    sptr->sum = sum;
-    sptr->sum2 = sum2;
-    ++sptr;
+    sumvec_ptr->sum = sum;
+    sumvec_ptr->sum2 = sum2;
+    ++sumvec_ptr;
 
-    span<sum_entry> sumvec(ctx->sumvec.data(), sptr - ctx->sumvec.data());
+    span<sum_entry> sumvec(ctx->sumvec.data(), sumvec_ptr - ctx->sumvec.data());
     double error = detail::span_error<sum_entry>(sumvec, 0, sumvec.size() - 1);
 
     std::optional<double> best_score;
     size_t best_index = 0;
 
-    #if 0
+    if (bcfg.num_split_points == consts::all) {
+      for (size_t i = left; i < right; ++i) {
+        double score = error - detail::split_error<sum_entry>(i, sumvec);
+        if (!best_score || score > *best_score) {
+          best_score = score;
+          best_index = i;
+        }
+      }
+    } else {
+      span<size_t> sample_points(ctx->sample_points.data(), right - left);
 
-    for (size_t i = left; i < right; ++i) {
-      double score = error - detail::split_error<sum_entry>(i, sumvec);
-      if (!best_score || score > *best_score) {
-        best_score = score;
-        best_index = i;
+      std::iota(sample_points.begin(), sample_points.end(), left);
+
+      span<size_t> ccs = resample(sample_points, bcfg.num_split_points, rndgen,
+                                  /*with_replacement=*/ true);
+      for (size_t i : ccs) {
+        double score = error - detail::split_error<sum_entry>(i, sumvec);
+        if (!best_score || score > *best_score) {
+          best_score = score;
+          best_index = i;
+        }
       }
     }
-
-    #else
-
-    span<size_t> sample_points(ctx->sample_points.data(), right - left);
-
-    std::iota(sample_points.begin(), sample_points.end(), left);
-
-    span<size_t> ccs = resample(sample_points, bcfg.num_split_points, rndgen,
-                                /*with_replacement=*/ true);
-    for (size_t i : ccs) {
-      double score = error - detail::split_error<sum_entry>(i, sumvec);
-      if (!best_score || score > *best_score) {
-        best_score = score;
-        best_index = i;
-      }
-    }
-
-    #endif
-
     if (!best_score || *best_score <= bcfg.min_split_error) {
       return std::nullopt;
     }
