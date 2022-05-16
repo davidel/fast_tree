@@ -18,6 +18,38 @@
 #include "fast_tree/util.h"
 
 namespace fast_tree {
+namespace detail {
+
+class score_keeper {
+ public:
+  score_keeper(size_t window_size, double threshold_pct) :
+      window_size_(window_size),
+      threshold_pct_(threshold_pct) {
+    FT_ASSERT(threshold_pct_ >= 0.0 && threshold_pct_ <= 1.0) << threshold_pct_;
+    scores_.reserve(window_size_);
+  }
+
+  void add_score(double score) {
+    scores_.push_back(score);
+    if (scores_.size() >= window_size_) {
+      std::sort(scores_.begin(), scores_.end());
+      threshold_ = scores_[static_cast<size_t>(window_size_ * threshold_pct_)];
+      scores_.clear();
+    }
+  }
+
+  bool check_score(double score) const {
+    return threshold_ && score >= *threshold_;
+  }
+
+ private:
+  size_t window_size_;
+  double threshold_pct_;
+  std::vector<double> scores_;
+  std::optional<double> threshold_;
+};
+
+}
 
 template <typename T>
 class build_tree_node {
@@ -30,12 +62,14 @@ class build_tree_node {
     context(size_t num_rows, size_t num_columns) :
         col_buffer(iota(num_columns)),
         feat_buffer(std::vector<T>(num_rows)),
-        tgt_buffer(std::vector<T>(num_rows)) {
+        tgt_buffer(std::vector<T>(num_rows)),
+        score_keeper(20, 0.75) {
     }
 
     storage_span<size_t> col_buffer;
     storage_span<T> feat_buffer;
     storage_span<T> tgt_buffer;
+    detail::score_keeper score_keeper;
   };
 
  public:
@@ -140,11 +174,17 @@ class build_tree_node {
         best_score = sres->score;
         best_column = c;
         best_value = feat[sres->index];
+
+        if (context_->score_keeper.check_score(sres->score)) {
+          break;
+        }
       }
     }
     if (!best_column) {
       return std::nullopt;
     }
+
+    context_->score_keeper.add_score(*best_score);
 
     return split_data{*best_column, *best_value};
   }
