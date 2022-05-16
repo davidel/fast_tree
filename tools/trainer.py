@@ -55,7 +55,9 @@ def _get_forest_options(args):
     max_depth=args.max_depth,
     num_split_points=args.num_split_points,
     min_split_error=args.min_split_error,
-    same_eps=args.same_eps)
+    same_eps=args.same_eps,
+    scorer_window=args.scorer_window,
+    scorer_threshold_pct=args.scorer_threshold_pct)
 
 
 def _get_train_test_indices(nrows, base, size, gap=0):
@@ -223,6 +225,10 @@ if __name__ == '__main__':
                       help='The minimum split error improvement for a split to be considered')
   parser.add_argument('--same_eps', type=float,
                       help='The epsilon to be used to consider two values to be the same')
+  parser.add_argument('--scorer_window', type=int,
+                      help='The window size used when collecting column split scores, to allow the good-score threshold selection')
+  parser.add_argument('--scorer_threshold_pct', type=float,
+                      help='The percentile of the --scorer_window scores to use as good-score threshold')
 
   parser.add_argument('--test_threshold', type=float, default=0.5,
                       help='The threshold to be used to classify buy triggers')

@@ -59,11 +59,11 @@ class build_tree_node {
   };
 
   struct context {
-    context(size_t num_rows, size_t num_columns) :
+    context(const build_config& bcfg, size_t num_rows, size_t num_columns) :
         col_buffer(iota(num_columns)),
         feat_buffer(std::vector<T>(num_rows)),
         tgt_buffer(std::vector<T>(num_rows)),
-        score_keeper(20, 0.75) {
+        score_keeper(bcfg.scorer_window, bcfg.scorer_threshold_pct) {
     }
 
     storage_span<size_t> col_buffer;
@@ -82,7 +82,7 @@ class build_tree_node {
 
   build_tree_node(const build_config& bcfg, std::shared_ptr<build_data<T>> bdata,
                   set_tree_fn setter_fn, const split_fn& splitter_fn, rnd_generator* rndgen) :
-      context_(std::make_shared<context>(bdata->data().num_rows(),
+      context_(std::make_shared<context>(bcfg, bdata->data().num_rows(),
                                          bdata->data().num_columns())),
       bcfg_(bcfg),
       bdata_(std::move(bdata)),

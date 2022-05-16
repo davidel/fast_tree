@@ -117,6 +117,9 @@ build_config get_build_config(size_t num_rows, size_t num_columns,
   bcfg.num_split_points = get_value_or<size_t>(opts, "num_split_points", bcfg.num_split_points);
   bcfg.min_split_error = get_value_or<double>(opts, "min_split_error", bcfg.min_split_error);
   bcfg.same_eps = get_value_or<double>(opts, "same_eps", bcfg.same_eps);
+  bcfg.scorer_window = get_value_or<size_t>(opts, "scorer_window", bcfg.scorer_window);
+  bcfg.scorer_threshold_pct = get_value_or<double>(opts, "scorer_threshold_pct",
+                                                   bcfg.scorer_threshold_pct);
 
   return bcfg;
 }

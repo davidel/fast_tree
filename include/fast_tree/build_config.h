@@ -18,6 +18,8 @@ struct build_config {
   size_t num_split_points = 10;
   double min_split_error = 0.0;
   double same_eps = 1e-6;
+  size_t scorer_window = 20;
+  double scorer_threshold_pct = 0.75;
 };
 
 }
