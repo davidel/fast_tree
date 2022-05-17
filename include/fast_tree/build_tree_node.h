@@ -33,7 +33,12 @@ class score_keeper {
     scores_.push_back(score);
     if (scores_.size() >= window_size_) {
       std::sort(scores_.begin(), scores_.end());
-      threshold_ = scores_[static_cast<size_t>(window_size_ * threshold_pct_)];
+
+      size_t threshold_idx = std::min<size_t>(
+          static_cast<size_t>(window_size_ * threshold_pct_),
+          scores_.size() - 1);
+
+      threshold_ = scores_[threshold_idx];
       scores_.clear();
     }
   }
