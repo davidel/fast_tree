@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <memory>
 #include <vector>
 
@@ -43,15 +44,15 @@ std::unique_ptr<tree_node<T>> build_tree(const build_config& bcfg,
   typename build_tree_node<T>::split_fn
       splitter = create_splitter<T>(bcfg, bdata->data().num_rows(), bdata->data().num_columns(),
                                     rndgen);
-  std::vector<std::unique_ptr<build_tree_node<T>>> queue;
+  std::list<std::unique_ptr<build_tree_node<T>>> queue;
 
   queue.push_back(std::make_unique<build_tree_node<T>>(
       bcfg, std::move(bdata), std::move(setter), splitter, rndgen));
 
   while (!queue.empty()) {
-    std::vector<std::unique_ptr<build_tree_node<T>>> split = queue.back()->split();
+    std::vector<std::unique_ptr<build_tree_node<T>>> split = queue.front()->split();
 
-    queue.pop_back();
+    queue.pop_front();
     for (size_t i = 0; i < split.size(); ++i) {
       queue.push_back(std::move(split[i]));
     }
