@@ -186,7 +186,7 @@ std::unique_ptr<py_forest<ft_type>> load_forest(const std::string& data) {
 }
 
 std::unique_ptr<py_forest<ft_type>> load_forest_from_file(const std::string& path) {
-  dcpl::mapfile mf(path, dcpl::mapfile::read);
+  dcpl::mapfile mf(path, dcpl::mapfile::open_read);
   std::string_view vdata(mf);
   std::unique_ptr<forest<ft_type>> forest_ptr = fast_tree::forest<ft_type>::load(&vdata);
 
