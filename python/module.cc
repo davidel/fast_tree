@@ -15,7 +15,7 @@
 #include <pybind11/stl.h>
 
 #include "dcpl/assert.h"
-#include "dcpl/mapfile.h"
+#include "dcpl/file.h"
 #include "dcpl/py_utils.h"
 #include "dcpl/storage_span.h"
 #include "dcpl/string_formatter.h"
@@ -186,8 +186,8 @@ std::unique_ptr<py_forest<ft_type>> load_forest(const std::string& data) {
 }
 
 std::unique_ptr<py_forest<ft_type>> load_forest_from_file(const std::string& path) {
-  dcpl::mapfile mf(path, dcpl::mapfile::open_read);
-  std::string_view vdata(mf);
+  dcpl::file::mmap mmap = dcpl::file::view(path, dcpl::file::mmap_read, 0, 0);
+  std::string_view vdata(mmap);
   std::unique_ptr<forest<ft_type>> forest_ptr = fast_tree::forest<ft_type>::load(&vdata);
 
   return std::make_unique<py_forest<ft_type>>(std::move(forest_ptr));
