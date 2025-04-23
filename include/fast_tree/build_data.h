@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include <cstdint>
+#include <cstddef>
 #include <span>
 #include <type_traits>
 #include <vector>
@@ -23,7 +23,7 @@ class build_data {
 
   explicit build_data(const data<T>& xdata) :
       data_(xdata),
-      indices_(dcpl::iota(data_.num_rows())),
+      indices_(dcpl::iota<std::size_t>(data_.num_rows())),
       start_(0),
       end_(indices_.size()) {
   }
@@ -103,8 +103,8 @@ class build_data {
  private:
   const fast_tree::data<T>& data_;
   dcpl::storage_span<std::size_t> indices_;
-  std::size_t start_;
-  std::size_t end_;
+  std::size_t start_ = 0;
+  std::size_t end_ = 0;
 };
 
 }

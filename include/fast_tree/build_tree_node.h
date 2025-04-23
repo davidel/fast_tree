@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include <cstdint>
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -25,13 +25,13 @@ namespace fast_tree {
 template <typename T>
 class build_tree_node {
   struct split_data {
-    std::size_t column;
-    T value;
+    std::size_t column = 0;
+    T value = 0;
   };
 
   struct context {
     context(std::size_t num_rows, std::size_t num_columns) :
-        col_buffer(dcpl::iota(num_columns)),
+        col_buffer(dcpl::iota<std::size_t>(num_columns)),
         feat_buffer(std::vector<T>(num_rows)),
         tgt_buffer(std::vector<T>(num_rows)) {
     }
@@ -163,7 +163,7 @@ class build_tree_node {
   std::shared_ptr<build_data<T>> bdata_;
   set_tree_fn set_fn_;
   const split_fn& split_fn_;
-  dcpl::rnd_generator* rndgen_;
+  dcpl::rnd_generator* rndgen_ = nullptr;
   std::size_t depth_ = 0;
 };
 
